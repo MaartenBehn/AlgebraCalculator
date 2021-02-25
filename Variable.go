@@ -1,6 +1,9 @@
 package AlgebraCalculator
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 type Variable struct {
 	name   string
@@ -8,18 +11,12 @@ type Variable struct {
 	len    int
 }
 
-func (v *Variable) addValue(value Variable) {
-	for _, number := range value.values {
-		v.values = append(v.values, number)
-	}
-	v.updateLen()
-}
-
 func (v *Variable) updateLen() {
 	v.len = len(v.values)
 }
 
-func (v *Variable) getSubVariable(configuration string) (bool, Variable) {
+func (v Variable) getSubVariable(configuration string) (bool, Variable) {
+	v.updateLen()
 
 	subVariable := Variable{
 		name: v.name + "." + configuration,
@@ -29,20 +26,26 @@ func (v *Variable) getSubVariable(configuration string) (bool, Variable) {
 		index := (int(indexChar) - '0') - 1
 
 		if index >= v.len {
-			return false, subVariable
+			return true, subVariable
 		}
 
 		subVariable.values = append(subVariable.values, v.values[index])
 	}
 
-	return true, subVariable
+	return false, subVariable
 }
 
-func (v *Variable) print() {
+func (v Variable) print() {
 
 	fmt.Print(v.name + " : ")
 	for _, value := range v.values {
-		fmt.Printf("%f ", value)
+
+		if value == math.Trunc(value) {
+			fmt.Printf("%.0f ", value)
+		} else {
+			fmt.Printf("%.4f ", value)
+		}
+
 	}
 	fmt.Print("\n")
 }

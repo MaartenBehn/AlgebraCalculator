@@ -22,6 +22,3 @@ d : len(t)
 
 a : 1 * ( 1 + ( 2 + 3 ) * ( 4 + 5 ) )
 
-values [1, nil, nil, 1, nil, nil, 2, nil, 3, nil, nil, nil, 4, nil, 5, nil, nil]
-opp [nil, mul, nil, nil, add, nil, nil, add, nil, nil, mul, nil, nil, add, nil, nil, nil]
-klammer [0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 1]
