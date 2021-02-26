@@ -1,4 +1,4 @@
-package AlgebraCalculator
+package V1
 
 import (
 	"io/ioutil"

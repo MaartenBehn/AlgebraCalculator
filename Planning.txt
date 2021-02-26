@@ -20,5 +20,39 @@ g(3)
 
 d : len(t) 
 
-a : 1 * ( 1 + ( 2 + 3 ) * ( 4 + 5 ) )
+a : 1, 1
+b : 2, 2
+
+g<t> : a + t * b
+
+
+
+
+
+
+Number a : term, term, term -> []float --> termPart
+Variable b --> termPart
+Operator + --> termPart
+Function func<x> : x + 2 --> termPart
+
+term -> []termParts
+
+termPart.Calc(term, index)term
+
+Number.Calc(){
+    return {Number}
+}
+
+Variable.Calc(){
+    return {Variable}
+}
+
+Operator.Calc(){
+    retrun {Number + Number}
+}
+
+Function.Calc(){
+    return term
+}
+
 

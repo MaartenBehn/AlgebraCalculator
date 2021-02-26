@@ -1,12 +1,7 @@
 package main
 
-import "AlgebraCalculator"
-
-type Funktion struct {
-	name string
-	term string
-}
+import "AlgebraCalculator/V2"
 
 func main() {
-	AlgebraCalculator.Run("input.txt")
+	V2.Run("input.txt")
 }
