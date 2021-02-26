@@ -1,35 +1,39 @@
 package V2
 
 import (
+	"fmt"
 	"math"
 )
 
-var mathFunctions = []Function{
+var mathFunctions = []MathFunction{
 	{"sqrt", sqrt, 1},
 	{"degree", degree, 1},
 	{"radians", radians, 1},
+	{"sin", sin, 1},
+	{"cos", cos, 1},
+	{"tan", tan, 1},
 }
 
-type Function struct {
+type MathFunction struct {
 	name            string
 	function        func([]Vector) Vector
 	attributeAmount int
 }
 
-func (f Function) getName() string {
+func (f MathFunction) getName() string {
 	return f.name
 }
-
-func (f Function) getType() int {
+func (f MathFunction) getType() int {
 	return TypFunction
 }
-
-func (f Function) getRank() int {
+func (f MathFunction) getRank() int {
 	return RankFunc
 }
-
-func (f Function) solve(term *Term, index int) {
-	attributs := term.getSub(index+1, index+1+f.attributeAmount)
+func (f MathFunction) isSolvable() bool {
+	return true
+}
+func (f MathFunction) solve(term *Term, index int) bool {
+	attributs := term.getSub(index+1, index+f.attributeAmount)
 
 	areVectors := true
 	for _, attribute := range attributs.parts {
@@ -46,9 +50,13 @@ func (f Function) solve(term *Term, index int) {
 	if areVectors {
 		result := f.function(vectors)
 
-		term.setSub(index, index+1+f.attributeAmount,
+		term.setSub(index, index+f.attributeAmount,
 			Term{parts: []TermPart{result}})
 	}
+	return false
+}
+func (f MathFunction) print() {
+	fmt.Print(f.name)
 }
 
 func sqrt(vectors []Vector) Vector {
@@ -66,6 +74,12 @@ func radians(vectors []Vector) Vector {
 	})
 }
 
-func (f Function) print() {
-	print(f.name)
+func sin(vectors []Vector) Vector {
+	return genericOpperation1V(vectors[0], math.Sin)
+}
+func cos(vectors []Vector) Vector {
+	return genericOpperation1V(vectors[0], math.Cos)
+}
+func tan(vectors []Vector) Vector {
+	return genericOpperation1V(vectors[0], math.Tan)
 }

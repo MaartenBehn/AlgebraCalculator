@@ -1,6 +1,9 @@
 package V2
 
-import "strings"
+import (
+	"log"
+	"strings"
+)
 
 type NameBasedTermPart interface {
 	TermPart
@@ -19,13 +22,32 @@ func setUpNameBasedTermParts() {
 	}
 }
 
-func parseTerm(text string) Term {
+const (
+	ParseStateNone   = 1
+	ParseStateNumber = 2
+	ParseStateWord   = 3
+)
+
+func parseTerm(text string) TermVariable {
+
+	parts := strings.Split(text, ":")
+
+	if len(parts) != 2 {
+		log.Panic("Invalid Variable creation!")
+	}
+	parts1 := removeEmptiStrings(splitAny(parts[0], " <>"))
+
+	var variables []Variable
+	for i := 1; i < len(parts1); i++ {
+		variables = append(variables, Variable{name: parts1[i]})
+	}
+
 	term := Term{}
 
-	parts := splitAny(text, " <>")
-	parts = removeEmptiStrings(parts)
+	parts2 := splitAny(parts[1], " <>")
+	parts2 = removeEmptiStrings(parts2)
 
-	for _, part := range parts {
+	for _, part := range parts2 {
 
 		if part == "(" {
 			term.parts = append(term.parts, Brace{true})
@@ -40,6 +62,18 @@ func parseTerm(text string) Term {
 		for _, nameBasedTermPart := range nameBasedTermParts {
 			if part == nameBasedTermPart.getName() {
 				term.parts = append(term.parts, nameBasedTermPart)
+			}
+		}
+
+		for _, publicTerm := range publicTerms {
+			if part == publicTerm.name {
+				term.parts = append(term.parts, publicTerm)
+			}
+		}
+
+		for _, variable := range variables {
+			if part == variable.name {
+				term.parts = append(term.parts, variable)
 			}
 		}
 
@@ -68,5 +102,12 @@ func parseTerm(text string) Term {
 			continue
 		}
 	}
-	return term
+
+	publicTerm := TermVariable{
+		Term:      term,
+		name:      parts1[0],
+		variables: variables,
+	}
+
+	return publicTerm
 }

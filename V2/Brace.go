@@ -9,7 +9,9 @@ type Brace struct {
 func (b Brace) getType() int {
 	return TypBrace
 }
-
+func (b Brace) isSolvable() bool {
+	return false
+}
 func (b Brace) print() {
 	if b.opening {
 		fmt.Print("(")

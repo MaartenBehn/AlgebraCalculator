@@ -1,5 +1,7 @@
 package V2
 
+import "fmt"
+
 type SubOperation struct {
 	configuration string
 }
@@ -7,13 +9,31 @@ type SubOperation struct {
 func (o SubOperation) getType() int {
 	return TypSubOperation
 }
-
 func (o SubOperation) getRank() int {
 	return RankSubOpperation
 }
+func (o SubOperation) isSolvable() bool {
+	return true
+}
+func (o SubOperation) solve(term *Term, index int) bool {
+	termPart := term.parts[index-1]
 
-func (o SubOperation) solve(term *Term, index int) {}
+	if termPart.getType() == TypVector {
 
+		vector := termPart.(Vector)
+
+		if len(o.configuration) <= vector.len {
+
+			result := Vector{}
+			for _, indexChar := range o.configuration {
+				index := (int(indexChar) - '0') - 1
+				result.append(Vector{[]float64{vector.values[index]}, 1})
+			}
+			term.setSub(index-1, index, Term{[]TermPart{result}})
+		}
+	}
+	return false
+}
 func (o SubOperation) print() {
-	print("." + o.configuration)
+	fmt.Print("." + o.configuration)
 }

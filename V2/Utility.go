@@ -38,5 +38,5 @@ func getVector(part string) Vector {
 	if err != nil {
 		log.Panic("Could not parse number!")
 	}
-	return Vector{values: []float64{number}}
+	return Vector{values: []float64{number}, len: 1}
 }

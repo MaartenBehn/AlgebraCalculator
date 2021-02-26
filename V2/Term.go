@@ -1,36 +1,30 @@
 package V2
 
-import "fmt"
-
 type Term struct {
 	parts []TermPart
 }
 
-func (t Term) print() {
-	for _, termPart := range t.parts {
-		termPart.print()
-		fmt.Print(" ")
-	}
-}
-
 func (term *Term) setSub(start int, end int, subTerm Term) {
-	newParts := append(term.parts[:start-1], subTerm.parts...)
-	term.parts = append(newParts, term.parts[end:]...)
+	termVar := *term
+	newParts := append(termVar.parts[:start], subTerm.parts...)
+	term.parts = append(newParts, termVar.parts[end+1:]...)
 }
 func (term *Term) getSub(start int, end int) Term {
-	return Term{term.parts[start:end]}
+	return Term{term.parts[start : end+1]}
 }
 
 const (
-	TypVector       int = 1
-	TypVariable     int = 2
-	TypOpperator    int = 3
-	TypFunction     int = 4
-	TypBrace        int = 5
-	TypSubOperation int = 6
+	TypVector       = 1
+	TypVariable     = 2
+	TypOpperator    = 3
+	TypFunction     = 4
+	TypBrace        = 5
+	TypSubOperation = 6
+	TypTermVariable = 7
 )
 
 type TermPart interface {
 	getType() int
+	isSolvable() bool
 	print()
 }

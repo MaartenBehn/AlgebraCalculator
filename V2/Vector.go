@@ -3,6 +3,7 @@ package V2
 import (
 	"fmt"
 	"log"
+	"math"
 )
 
 type Vector struct {
@@ -10,17 +11,42 @@ type Vector struct {
 	len    int
 }
 
-func (v Vector) getType() int {
-	return TypVector
-}
-
 func (v *Vector) append(v2 Vector) {
 	v.values = append(v.values, v2.values...)
 	v.len = len(v.values)
 }
-
 func (v *Vector) updateLen() {
 	v.len = len(v.values)
+}
+
+func (v Vector) getType() int {
+	return TypVector
+}
+func (v Vector) isSolvable() bool {
+	return false
+}
+func (v Vector) print() {
+
+	if v.len > 1 {
+		fmt.Print("(")
+	}
+
+	for i, value := range v.values {
+
+		if value == math.Trunc(value) {
+			fmt.Printf("%.0f", value)
+		} else {
+			fmt.Printf("%.4f", value)
+		}
+
+		if i < v.len-1 {
+			fmt.Print(" ")
+		}
+	}
+
+	if v.len > 1 {
+		fmt.Print(")")
+	}
 }
 
 func genericOpperation1V(x Vector, opperation func(float64) float64) Vector {
@@ -32,7 +58,6 @@ func genericOpperation1V(x Vector, opperation func(float64) float64) Vector {
 	result.updateLen()
 	return result
 }
-
 func genericOpperation2VScalar(x Vector, y Vector, opperation func(float64, float64) float64) Vector {
 	result := Vector{}
 
@@ -63,12 +88,4 @@ func genericOpperation2VScalar(x Vector, y Vector, opperation func(float64, floa
 
 	result.updateLen()
 	return result
-}
-
-func (v Vector) print() {
-	for _, value := range v.values {
-		fmt.Printf("%.2f", value)
-		fmt.Print(" ")
-	}
-
 }

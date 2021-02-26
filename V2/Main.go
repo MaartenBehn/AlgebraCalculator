@@ -1,12 +1,15 @@
 package V2
 
 import (
+	"fmt"
 	"io/ioutil"
-	"log"
 	"strings"
 )
 
 func Run(filename string) {
+
+	setUpNameBasedTermParts()
+
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
 		panic(err)
@@ -19,23 +22,12 @@ func Run(filename string) {
 			continue
 		}
 
-		parts := strings.Split(line, ":")
-		if len(parts) != 2 {
-			log.Panic("Invalid Variable creation!")
-		}
-		parts1 := removeEmptiStrings(strings.Split(parts[0], " "))
-		if len(parts1) != 1 {
-			log.Panic("Invalid Variable name! Too many Spaces.")
-		}
+		publicTerm := parseTerm(line)
+		publicTerm.Term = solveTerm(publicTerm.Term)
 
-		texts := strings.Split(parts[1], ",")
-		for _, text := range texts {
+		publicTerms = append(publicTerms, publicTerm)
 
-			term := parseTerm(text)
-
-			term = solveTerm(term)
-
-			term.print()
-		}
+		publicTerm.print()
+		fmt.Print("\n")
 	}
 }
