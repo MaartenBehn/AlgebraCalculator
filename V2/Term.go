@@ -28,12 +28,22 @@ func (t *Term) updateIndexes() {
 }
 
 func (t *Term) setSub(start int, end int, subTerm Term) {
-	termVar := *t
+	termVar := Term{}
+	for i := 0; i < len(t.parts); i++ {
+		termVar.parts = append(termVar.parts, t.parts[i])
+		termVar.indexes = append(termVar.indexes, t.indexes[i])
+	}
 
 	newIndexes := append(termVar.indexes[:start], subTerm.indexes...)
-	t.indexes = append(newIndexes, termVar.indexes[end+1:]...)
-
 	newParts := append(termVar.parts[:start], subTerm.parts...)
+
+	termVar = Term{}
+	for i := 0; i < len(t.parts); i++ {
+		termVar.parts = append(termVar.parts, t.parts[i])
+		termVar.indexes = append(termVar.indexes, t.indexes[i])
+	}
+
+	t.indexes = append(newIndexes, termVar.indexes[end+1:]...)
 	t.parts = append(newParts, termVar.parts[end+1:]...)
 
 	t.updateIndexes()
@@ -61,4 +71,5 @@ type ITermPart interface {
 	getType() int
 	isSolvable() bool
 	print()
+	getSimplify() int
 }

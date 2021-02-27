@@ -67,3 +67,6 @@ func (t TermVariable) print() {
 		fmt.Print(" ")
 	}
 }
+func (t TermVariable) getSimplify() int {
+	return SimplifyNone
+}

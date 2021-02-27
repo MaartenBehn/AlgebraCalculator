@@ -19,3 +19,6 @@ func (b Brace) print() {
 		fmt.Print(")")
 	}
 }
+func (b Brace) getSimplify() int {
+	return SimplifyNone
+}

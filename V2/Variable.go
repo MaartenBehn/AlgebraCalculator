@@ -18,3 +18,6 @@ func (v Variable) isSolvable() bool {
 func (v Variable) print() {
 	fmt.Print(v.name)
 }
+func (v Variable) getSimplify() int {
+	return SimplifyVariable
+}

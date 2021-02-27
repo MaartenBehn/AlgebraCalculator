@@ -12,7 +12,6 @@ var mathOperators = []Operator{
 	{"-", sub, RankAddSub},
 	{"*", mul, RankMul},
 	{"/", div, RankMul},
-	{"^", pow, RankMul},
 	{"pow", pow, RankPow},
 	{"dot", dot, RankFunc},
 }
@@ -48,6 +47,21 @@ func (o Operator) solve(term *Term, index int) bool {
 }
 func (o Operator) print() {
 	fmt.Print(o.name)
+}
+func (o Operator) getSimplify() int {
+	switch o.name {
+	case "+":
+		return SimplifyAdd
+	case "-":
+		return SimplifySub
+	case "*":
+		return SimplifyMul
+	case "/":
+		return SimplifyDiv
+	case "pow":
+		return SimplifyPow
+	}
+	return SimplifyNone
 }
 
 func appandVector(x Vector, y Vector) Vector {
@@ -93,4 +107,13 @@ func dot(x Vector, y Vector) Vector {
 	}
 
 	return result
+}
+
+func findOperator(name string) Operator {
+	for _, operator := range mathOperators {
+		if operator.name == name {
+			return operator
+		}
+	}
+	return Operator{}
 }

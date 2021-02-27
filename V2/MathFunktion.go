@@ -57,6 +57,9 @@ func (f MathFunction) solve(term *Term, index int) bool {
 func (f MathFunction) print() {
 	fmt.Print(f.name)
 }
+func (f MathFunction) getSimplify() int {
+	return SimplifyVariable
+}
 
 func sqrt(vectors []Vector) Vector {
 	return genericOpperation1V(vectors[0], math.Sqrt)

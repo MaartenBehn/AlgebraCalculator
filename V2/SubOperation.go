@@ -37,3 +37,6 @@ func (o SubOperation) solve(term *Term, index int) bool {
 func (o SubOperation) print() {
 	fmt.Print("." + o.configuration)
 }
+func (o SubOperation) getSimplify() int {
+	return SimplifyNone
+}

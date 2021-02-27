@@ -23,6 +23,9 @@ func Run(filename string) {
 		}
 
 		publicTerm := parseTerm(line)
+
+		publicTerm.Term = simplifyTermStep1(publicTerm.Term)
+
 		publicTerm.Term = solveTerm(publicTerm.Term)
 
 		publicTerms = append(publicTerms, publicTerm)

@@ -48,6 +48,9 @@ func (v Vector) print() {
 		fmt.Print(" )")
 	}
 }
+func (v Vector) getSimplify() int {
+	return SimplifyVector
+}
 
 func genericOpperation1V(x Vector, opperation func(float64) float64) Vector {
 	result := Vector{}
