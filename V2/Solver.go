@@ -12,7 +12,7 @@ const (
 )
 
 type SolvableTermPart interface {
-	TermPart
+	ITermPart
 	solve(term *Term, index int) bool
 	getRank() int
 }
@@ -53,26 +53,24 @@ func solveTerm(term Term) Term {
 		braceLengthSum += closeIndex - openIndex
 	}
 
-	var executionOrder []int
+	var executionOrder []*int
 	for i := RankMax; i >= 1; i-- {
 		for j, termPart := range term.parts {
 
 			if termPart.isSolvable() && termPart.(SolvableTermPart).getRank() == i {
-				executionOrder = append(executionOrder, j)
+				executionOrder = append(executionOrder, term.indexes[j])
 			}
 		}
 	}
 
-	reRun := false
-	for _, index := range executionOrder {
-		shouldReRun := term.parts[index].(SolvableTermPart).solve(&term, index)
-		if shouldReRun {
-			reRun = true
-		}
-	}
+	for _, termPartIndex := range executionOrder {
 
-	if reRun {
-		term = solveTerm(term)
+		shouldReRun := term.parts[*termPartIndex].(SolvableTermPart).solve(&term, *termPartIndex)
+
+		if shouldReRun {
+			term = solveTerm(term)
+			break
+		}
 	}
 
 	return term

@@ -50,8 +50,7 @@ func (f MathFunction) solve(term *Term, index int) bool {
 	if areVectors {
 		result := f.function(vectors)
 
-		term.setSub(index, index+f.attributeAmount,
-			Term{parts: []TermPart{result}})
+		term.setSub(index, index+f.attributeAmount, NewTerm([]ITermPart{result}))
 	}
 	return false
 }

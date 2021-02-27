@@ -29,7 +29,7 @@ func (o SubOperation) solve(term *Term, index int) bool {
 				index := (int(indexChar) - '0') - 1
 				result.append(Vector{[]float64{vector.values[index]}, 1})
 			}
-			term.setSub(index-1, index, Term{[]TermPart{result}})
+			term.setSub(index-1, index, NewTerm([]ITermPart{result}))
 		}
 	}
 	return false

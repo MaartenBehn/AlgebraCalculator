@@ -6,7 +6,7 @@ import (
 )
 
 type NameBasedTermPart interface {
-	TermPart
+	ITermPart
 	getName() string
 }
 
@@ -102,6 +102,7 @@ func parseTerm(text string) TermVariable {
 			continue
 		}
 	}
+	term.updateIndexes()
 
 	publicTerm := TermVariable{
 		Term:      term,

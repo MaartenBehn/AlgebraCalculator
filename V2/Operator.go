@@ -42,8 +42,7 @@ func (o Operator) solve(term *Term, index int) bool {
 	if term1.getType() == TypVector && term2.getType() == TypVector {
 		result := o.function(term1.(Vector), term2.(Vector))
 
-		term.setSub(index-1, index+1,
-			Term{parts: []TermPart{result}})
+		term.setSub(index-1, index+1, NewTerm([]ITermPart{result}))
 	}
 	return false
 }

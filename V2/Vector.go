@@ -28,7 +28,7 @@ func (v Vector) isSolvable() bool {
 func (v Vector) print() {
 
 	if v.len > 1 {
-		fmt.Print("(")
+		fmt.Print("( ")
 	}
 
 	for i, value := range v.values {
@@ -40,12 +40,12 @@ func (v Vector) print() {
 		}
 
 		if i < v.len-1 {
-			fmt.Print(" ")
+			fmt.Print(" , ")
 		}
 	}
 
 	if v.len > 1 {
-		fmt.Print(")")
+		fmt.Print(" )")
 	}
 }
 

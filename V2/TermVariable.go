@@ -21,23 +21,28 @@ func (t TermVariable) getRank() int {
 }
 func (t TermVariable) solve(term *Term, index int) bool {
 
-	vectors := make([]Vector, len(t.variables))
+	inputParts := make([]ITermPart, len(t.variables))
 	for i := 0; i < len(t.variables); i++ {
-		if len(term.parts) <= index+1+i || term.parts[index+1+i].getType() != TypVector {
+		if len(term.parts) <= index+1+i || (term.parts[index+1+i].getType() != TypVector && term.parts[index+1+i].getType() != TypTermVariable) {
 			return false
 		}
-		vectors[i] = term.parts[index+1+i].(Vector)
+		inputParts[i] = term.parts[index+1+i]
+	}
+
+	baseTerm := NewTerm(make([]ITermPart, len(t.parts)))
+	for i, termPart := range t.parts {
+		baseTerm.parts[i] = termPart
 	}
 
 	for i, variable := range t.variables {
-		for j, termPart := range t.Term.parts {
+		for j, termPart := range baseTerm.parts {
 			if termPart.getType() == TypVariable && variable.name == termPart.(Variable).name {
-				t.Term.parts[j] = vectors[i]
+				baseTerm.parts[j] = inputParts[i]
 			}
 		}
 	}
 
-	term.setSub(index, index+len(t.variables), t.Term)
+	term.setSub(index, index+len(t.variables), baseTerm)
 
 	return true
 }
