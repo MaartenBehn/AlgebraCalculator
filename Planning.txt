@@ -67,16 +67,13 @@ t / t -> 0
 t * 2 -> 2 * t
 t * t -> t pow 2
 
+2 * 1 / 2 * 5
 
+V3
 
-2 - t * 2
--> 2 + -1 * t * 2
--> 2 + -1 * 2 * t
--> 2 + -2 * t
+Term Tree[]Operator
 
--> 2 * d + -4 * t +
+Operator
+OperatorChilds[]
 
-a * 2 - > 2 * a
-a - a -> 0
-2 * a + 2 * a - > 4 * t
-a * a -> a pow 2
+2 * ( 5 + t )

@@ -34,7 +34,7 @@ func (o Operator) getRank() int {
 func (o Operator) isSolvable() bool {
 	return true
 }
-func (o Operator) solve(term *Term, index int) bool {
+func (o Operator) solve(term *Term, index int) (bool, bool) {
 	term1 := term.parts[index-1]
 	term2 := term.parts[index+1]
 
@@ -42,13 +42,14 @@ func (o Operator) solve(term *Term, index int) bool {
 		result := o.function(term1.(Vector), term2.(Vector))
 
 		term.setSub(index-1, index+1, NewTerm([]ITermPart{result}))
+		return false, false
 	}
-	return false
+	return false, true
 }
 func (o Operator) print() {
 	fmt.Print(o.name)
 }
-func (o Operator) getSimplify() int {
+func (o Operator) getSimplify() float64 {
 	switch o.name {
 	case "+":
 		return SimplifyAdd

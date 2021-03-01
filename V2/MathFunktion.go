@@ -32,7 +32,7 @@ func (f MathFunction) getRank() int {
 func (f MathFunction) isSolvable() bool {
 	return true
 }
-func (f MathFunction) solve(term *Term, index int) bool {
+func (f MathFunction) solve(term *Term, index int) (bool, bool) {
 	attributs := term.getSub(index+1, index+f.attributeAmount)
 
 	areVectors := true
@@ -42,23 +42,24 @@ func (f MathFunction) solve(term *Term, index int) bool {
 		}
 	}
 
-	vectors := make([]Vector, len(attributs.parts))
-	for i, attribute := range attributs.parts {
-		vectors[i] = attribute.(Vector)
-	}
-
 	if areVectors {
+		vectors := make([]Vector, len(attributs.parts))
+		for i, attribute := range attributs.parts {
+			vectors[i] = attribute.(Vector)
+		}
+
 		result := f.function(vectors)
 
 		term.setSub(index, index+f.attributeAmount, NewTerm([]ITermPart{result}))
 	}
-	return false
+	return false, !areVectors
+
 }
 func (f MathFunction) print() {
 	fmt.Print(f.name)
 }
-func (f MathFunction) getSimplify() int {
-	return SimplifyVariable
+func (f MathFunction) getSimplify() float64 {
+	return SimplifyFunction
 }
 
 func sqrt(vectors []Vector) Vector {

@@ -1,7 +1,7 @@
 package main
 
-import "AlgebraCalculator/V2"
+import "AlgebraCalculator/V3"
 
 func main() {
-	V2.Run("input.txt")
+	V3.Run("input.txt")
 }

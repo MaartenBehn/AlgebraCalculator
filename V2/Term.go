@@ -71,5 +71,5 @@ type ITermPart interface {
 	getType() int
 	isSolvable() bool
 	print()
-	getSimplify() int
+	getSimplify() float64
 }

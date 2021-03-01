@@ -19,12 +19,12 @@ func (t TermVariable) isSolvable() bool {
 func (t TermVariable) getRank() int {
 	return RankTerm
 }
-func (t TermVariable) solve(term *Term, index int) bool {
+func (t TermVariable) solve(term *Term, index int) (bool, bool) {
 
 	inputParts := make([]ITermPart, len(t.variables))
 	for i := 0; i < len(t.variables); i++ {
 		if len(term.parts) <= index+1+i || (term.parts[index+1+i].getType() != TypVector && term.parts[index+1+i].getType() != TypTermVariable) {
-			return false
+			return false, true
 		}
 		inputParts[i] = term.parts[index+1+i]
 	}
@@ -44,7 +44,7 @@ func (t TermVariable) solve(term *Term, index int) bool {
 
 	term.setSub(index, index+len(t.variables), baseTerm)
 
-	return true
+	return true, false
 }
 func (t TermVariable) print() {
 	fmt.Printf("%s", t.name)
@@ -67,6 +67,6 @@ func (t TermVariable) print() {
 		fmt.Print(" ")
 	}
 }
-func (t TermVariable) getSimplify() int {
+func (t TermVariable) getSimplify() float64 {
 	return SimplifyNone
 }

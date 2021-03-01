@@ -22,12 +22,6 @@ func setUpNameBasedTermParts() {
 	}
 }
 
-const (
-	ParseStateNone   = 1
-	ParseStateNumber = 2
-	ParseStateWord   = 3
-)
-
 func parseTerm(text string) TermVariable {
 
 	parts := strings.Split(text, ":")

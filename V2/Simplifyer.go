@@ -1,37 +1,52 @@
 package V2
 
 const (
-	SimplifyOne      = 1
-	SimplifyMinusOne = 2
-	SimplifyTwo      = 3
-	SimplifyAdd      = 4
-	SimplifySub      = 5
-	SimplifyMul      = 6
-	SimplifyDiv      = 7
-	SimplifyPow      = 8
-	SimplifyVector   = 9
-	SimplifyVariable = 10
-	SimplifyNone     = 12
+	SimplifyAdd      = -100
+	SimplifySub      = -101
+	SimplifyMul      = -102
+	SimplifyDiv      = -103
+	SimplifyPow      = -104
+	SimplifyVector   = -105
+	SimplifyVariable = -106
+	SimplifyFunction = -107
+	SimplifyNone     = -108
 )
 
 var simplifyRules = []SimplifyRule{
-	{[]int{SimplifySub, SimplifyVector}, []int{SimplifyAdd, SimplifyMinusOne, SimplifyMul, SimplifyVector}},
-	{[]int{SimplifySub, SimplifyVariable}, []int{SimplifyAdd, SimplifyMinusOne, SimplifyMul, SimplifyVariable}},
 
-	{[]int{SimplifyVariable, SimplifyDiv, SimplifyVector}, []int{SimplifyOne, SimplifyDiv, SimplifyVector, SimplifyMul, SimplifyVariable}},
-	{[]int{SimplifyVector, SimplifyDiv, SimplifyVariable}, []int{SimplifyVector, SimplifyMul, SimplifyVariable, SimplifyPow, SimplifyMinusOne}},
-	{[]int{SimplifyVariable, SimplifyDiv, SimplifyVariable}, []int{}},
+	{[]float64{SimplifySub, SimplifyVector}, []float64{SimplifyAdd, -1, SimplifyMul, SimplifyVector}},
+	{[]float64{SimplifySub, SimplifyVariable}, []float64{SimplifyAdd, -1, SimplifyMul, SimplifyVariable}},
 
-	{[]int{SimplifyVariable, SimplifyMul, SimplifyVector}, []int{SimplifyVector, SimplifyMul, SimplifyVariable}},
-	{[]int{SimplifyVariable, SimplifyMul, SimplifyVariable}, []int{SimplifyVariable, SimplifyPow, SimplifyTwo}},
+	{[]float64{SimplifyVariable, SimplifyDiv, SimplifyVector}, []float64{1.0, SimplifyDiv, SimplifyVector, SimplifyMul, SimplifyVariable}},
+	{[]float64{SimplifyVariable, SimplifyDiv, SimplifyVariable}, []float64{1}},
+
+	{[]float64{SimplifyVariable, SimplifyMul, SimplifyVector}, []float64{SimplifyVector, SimplifyMul, SimplifyVariable}},
+
+	{[]float64{SimplifyVariable, SimplifyPow, 1}, []float64{SimplifyVariable}},
+	{[]float64{SimplifyVariable, SimplifyPow, 2}, []float64{SimplifyVariable, SimplifyMul, SimplifyVariable}},
+	{[]float64{SimplifyVariable, SimplifyPow, 3}, []float64{SimplifyVariable, SimplifyMul, SimplifyVariable, SimplifyMul, SimplifyVariable}},
+	{[]float64{SimplifyVariable, SimplifyPow, 4}, []float64{SimplifyVariable, SimplifyMul, SimplifyVariable, SimplifyMul, SimplifyVariable, SimplifyMul, SimplifyVariable}},
 }
 
 type SimplifyRule struct {
-	search  []int
-	replace []int
+	search  []float64
+	replace []float64
+}
+
+func simplifyTerm(term Term) Term {
+
+	term = simplifyTermStep2(term)
+	term = simplifyTermStep3(term)
+
+	return term
 }
 
 func simplifyTermStep1(term Term) Term {
+
+	return term
+}
+
+func simplifyTermStep2(term Term) Term {
 
 	var foundIndex int
 	for foundIndex != -1 {
@@ -48,7 +63,8 @@ func simplifyTermStep1(term Term) Term {
 				for j := i; j < len(term.parts); j++ {
 
 					termPart := term.parts[j]
-					if termPart.getSimplify() == rule.search[checkIndex] {
+					if termPart.getSimplify() == rule.search[checkIndex] ||
+						(termPart.getSimplify() == SimplifyVector && termPart.(Vector).len == 1 && termPart.(Vector).values[0] == rule.search[checkIndex]) {
 						checkIndex++
 
 						if termPart.getSimplify() == SimplifyVariable && varibleName == "" {
@@ -85,24 +101,6 @@ func simplifyTermStep1(term Term) Term {
 
 			var termPart ITermPart
 			switch rulePart {
-			case SimplifyOne:
-				termPart = Vector{
-					values: []float64{1},
-					len:    1,
-				}
-				break
-			case SimplifyMinusOne:
-				termPart = Vector{
-					values: []float64{-1},
-					len:    1,
-				}
-				break
-			case SimplifyTwo:
-				termPart = Vector{
-					values: []float64{2},
-					len:    1,
-				}
-				break
 			case SimplifyAdd:
 				termPart = findOperator("+")
 				break
@@ -119,12 +117,23 @@ func simplifyTermStep1(term Term) Term {
 				termPart = findOperator("pow")
 				break
 			default:
+				found := false
 				for i := foundIndex; i < foundIndex+len(foundRule.search); i++ {
 					if term.parts[i].getSimplify() == rulePart {
 						termPart = term.parts[i]
+						found = true
 						break
 					}
 				}
+				if found {
+					break
+				}
+
+				termPart = Vector{
+					values: []float64{rulePart},
+					len:    1,
+				}
+
 				break
 			}
 
@@ -133,6 +142,20 @@ func simplifyTermStep1(term Term) Term {
 
 		term.setSub(foundIndex, foundIndex+len(foundRule.search)-1, replaceTerm)
 	}
+
+	return term
+}
+
+type SimplifyExpression struct {
+	baseTerm      Term
+	variableTerms []Term
+	exponens      []float64
+	vectorTerms   []Term
+	failed        bool
+	merged        bool
+}
+
+func simplifyTermStep3(term Term) Term {
 
 	var subTerms []Term
 	startIndex := 0
@@ -144,105 +167,161 @@ func simplifyTermStep1(term Term) Term {
 	}
 	subTerms = append(subTerms, term.getSub(startIndex, len(term.parts)-1))
 
-	var alreadyMerged []int
-	var mergedTerms []Term
-	for i, subTerm := range subTerms {
+	var expressions []SimplifyExpression
 
-		merged := false
-		for _, index := range alreadyMerged {
-			if i == index {
-				merged = true
+	for _, subTerm := range subTerms {
+
+		expression := SimplifyExpression{}
+		expression.baseTerm = subTerm
+		for i, termPart := range subTerm.parts {
+
+			if termPart.getSimplify() == SimplifyNone {
+				expression.failed = true
 				break
+			} else if termPart.getSimplify() == SimplifyVariable || termPart.getSimplify() == SimplifyFunction {
+
+				var variableTerm Term
+				if termPart.getSimplify() == SimplifyVariable {
+					variableTerm = NewTerm([]ITermPart{termPart})
+				} else {
+					variableTerm = subTerm.getSub(i, i+termPart.(MathFunction).attributeAmount)
+				}
+
+				index := -1
+				for i, testvariableTerm := range expression.variableTerms {
+					if areNameBasedTermsEqual(variableTerm, testvariableTerm) {
+						index = i
+					}
+				}
+
+				if i == 0 || subTerm.parts[i-1].getSimplify() == SimplifyMul {
+
+					if index == -1 {
+						index = len(expression.variableTerms)
+						expression.variableTerms = append(expression.variableTerms, variableTerm)
+						expression.exponens = append(expression.exponens, 0)
+					}
+
+					expression.exponens[index] += 1
+				} else if subTerm.parts[i-1].getSimplify() == SimplifyDiv {
+
+					if index == -1 {
+						index = len(expression.variableTerms)
+						expression.variableTerms = append(expression.variableTerms, variableTerm)
+						expression.exponens = append(expression.exponens, 0)
+					}
+
+					expression.exponens[index] -= 1
+				}
+
+			} else if termPart.getSimplify() == SimplifyVector {
+
+				if i == 0 || subTerm.parts[i-1].getSimplify() == SimplifyMul {
+					expression.vectorTerms = append(expression.vectorTerms, NewTerm([]ITermPart{termPart}))
+				} else if subTerm.parts[i-1].getSimplify() == SimplifyDiv {
+					expression.vectorTerms = append(expression.vectorTerms, NewTerm([]ITermPart{Vector{[]float64{1}, 1}, subTerm.parts[i-1], termPart}))
+				}
 			}
 		}
-		if merged {
+
+		if len(expression.variableTerms) > 0 && len(expression.vectorTerms) == 0 {
+			expression.vectorTerms = append(expression.vectorTerms, NewTerm([]ITermPart{Vector{[]float64{1}, 1}}))
+		}
+
+		expressions = append(expressions, expression)
+	}
+
+	for i, expression := range expressions {
+		if expression.failed || expression.merged {
 			continue
 		}
 
-		var variables []NameBasedTermPart
-		for _, termPart := range subTerm.parts {
-			if termPart.getSimplify() == SimplifyVariable {
-				variables = append(variables, termPart.(NameBasedTermPart))
+		var newTermParts []ITermPart
+
+		newTermParts = append(newTermParts, Brace{true})
+
+		for o, vectorTerm := range expression.vectorTerms {
+			newTermParts = append(newTermParts, vectorTerm.parts...)
+
+			if o < len(expression.vectorTerms)-1 {
+				newTermParts = append(newTermParts, findOperator("*"))
+			} else {
+				newTermParts = append(newTermParts, findOperator("+"))
 			}
 		}
 
-		var sameSubTerms []Term
-		for j, testSubTerm := range subTerms {
-
-			if i == j {
+		for j, testExpression := range expressions {
+			if i == j || expression.failed || expression.merged {
 				continue
 			}
 
-			var testVariables []NameBasedTermPart
-			for _, termPart := range testSubTerm.parts {
-				if termPart.getSimplify() == SimplifyVariable {
-					testVariables = append(testVariables, termPart.(NameBasedTermPart))
-				}
+			if len(expression.variableTerms) != len(testExpression.variableTerms) {
+				continue
 			}
 
-			var counter int
-			if len(variables) > len(testVariables) {
-				counter = len(variables)
-			} else {
-				counter = len(testVariables)
-			}
-
-			for _, variable := range variables {
-				for _, testVariable := range testVariables {
-					if variable.getName() == testVariable.getName() {
+			counter := len(expression.variableTerms)
+			for i, variableTerm := range expression.variableTerms {
+				for j, testVariableTerm := range testExpression.variableTerms {
+					if areNameBasedTermsEqual(variableTerm, testVariableTerm) && expression.exponens[i] == testExpression.exponens[j] {
 						counter--
-						break
 					}
 				}
 			}
 
-			if counter == 0 {
-				sameSubTerms = append(sameSubTerms, testSubTerm)
-				alreadyMerged = append(alreadyMerged, j)
-			}
-		}
-
-		for _, sameSubTerm := range sameSubTerms {
-
-			var vectors []ITermPart
-			for _, termPart := range sameSubTerm.parts {
-				if termPart.getSimplify() == SimplifyVector {
-					vectors = append(vectors, termPart)
-				}
+			if counter != 0 {
+				continue
 			}
 
-			if len(vectors) == 0 {
-				vectors = append(vectors, Vector{
-					values: []float64{1},
-					len:    1,
-				})
-			}
+			for o, vectorTerm := range testExpression.vectorTerms {
+				newTermParts = append(newTermParts, vectorTerm.parts...)
 
-			for i, vector := range vectors {
-				var addTerm Term
-				if i == 0 {
-					addTerm = NewTerm([]ITermPart{vector, findOperator("+")})
+				if o < len(testExpression.vectorTerms)-1 {
+					newTermParts = append(newTermParts, findOperator("*"))
 				} else {
-					addTerm = NewTerm([]ITermPart{vector, findOperator("*")})
+					newTermParts = append(newTermParts, findOperator("+"))
 				}
-
-				subTerm.parts = append(addTerm.parts, subTerm.parts...)
 			}
 
-			subTerm.updateIndexes()
-
+			expressions[j].merged = true
 		}
 
-		mergedTerms = append(mergedTerms, subTerm)
-	}
+		newTermParts[len(newTermParts)-1] = Brace{false}
 
-	var finalParts []ITermPart
-	for i, mergedTerm := range mergedTerms {
-		if i < len(mergedTerms)-1 {
-			mergedTerm.parts = append(mergedTerm.parts, findOperator("+"))
+		if len(expression.variableTerms) > 0 {
+			newTermParts = append(newTermParts, findOperator("*"))
+
+			for o, variable := range expression.variableTerms {
+				newTermParts = append(newTermParts, variable.parts...)
+
+				if expression.exponens[o] != 1 {
+					newTermParts = append(newTermParts, findOperator("pow"))
+					newTermParts = append(newTermParts, Vector{[]float64{expression.exponens[o]}, 1})
+				}
+
+				if o < len(expression.variableTerms)-1 {
+					newTermParts = append(newTermParts, findOperator("*"))
+				}
+			}
 		}
-		finalParts = append(finalParts, mergedTerm.parts...)
+
+		expressions[i].baseTerm = NewTerm(newTermParts)
 	}
 
-	return NewTerm(finalParts)
+	var newTermParts []ITermPart
+
+	for _, expression := range expressions {
+		if !expression.failed && expression.merged {
+			continue
+		}
+
+		if len(newTermParts) > 0 {
+			newTermParts = append(newTermParts, findOperator("+"))
+		}
+
+		newTermParts = append(newTermParts, expression.baseTerm.parts...)
+	}
+
+	term = NewTerm(newTermParts)
+
+	return term
 }

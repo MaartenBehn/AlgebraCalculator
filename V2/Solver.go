@@ -13,7 +13,7 @@ const (
 
 type SolvableTermPart interface {
 	ITermPart
-	solve(term *Term, index int) bool
+	solve(term *Term, index int) (rerun bool, failed bool)
 	getRank() int
 }
 
@@ -65,7 +65,11 @@ func solveTerm(term Term) Term {
 
 	for _, termPartIndex := range executionOrder {
 
-		shouldReRun := term.parts[*termPartIndex].(SolvableTermPart).solve(&term, *termPartIndex)
+		shouldReRun, failed := term.parts[*termPartIndex].(SolvableTermPart).solve(&term, *termPartIndex)
+
+		if failed {
+			break
+		}
 
 		if shouldReRun {
 			term = solveTerm(term)

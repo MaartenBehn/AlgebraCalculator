@@ -1,4 +1,4 @@
-package V2
+package V3
 
 import (
 	"fmt"
@@ -7,25 +7,32 @@ import (
 )
 
 type Vector struct {
+	*Node
 	values []float64
 	len    int
 }
 
-func (v *Vector) append(v2 Vector) {
-	v.values = append(v.values, v2.values...)
-	v.len = len(v.values)
-}
-func (v *Vector) updateLen() {
-	v.len = len(v.values)
+func NewVector(values []float64) *Vector {
+	return &Vector{
+		Node:   NewNode(TypVector, RankNone, 0),
+		values: values,
+		len:    len(values),
+	}
 }
 
-func (v Vector) getType() int {
-	return TypVector
-}
-func (v Vector) isSolvable() bool {
-	return false
+func (v *Vector) copy() INode {
+	copy := NewVector(v.values)
+	copy.childs = make([]INode, len(v.childs))
+
+	for i, child := range v.childs {
+		childCopy := child.copy()
+		childCopy.setParent(copy)
+		copy.childs[i] = childCopy
+	}
+	return copy
 }
 func (v Vector) print() {
+	v.Node.print()
 
 	if v.len > 1 {
 		fmt.Print("( ")
@@ -48,12 +55,17 @@ func (v Vector) print() {
 		fmt.Print(" )")
 	}
 }
-func (v Vector) getSimplify() float64 {
-	return SimplifyVector
+
+func (v *Vector) append(v2 *Vector) {
+	v.values = append(v.values, v2.values...)
+	v.len = len(v.values)
+}
+func (v *Vector) updateLen() {
+	v.len = len(v.values)
 }
 
-func genericOpperation1V(x Vector, opperation func(float64) float64) Vector {
-	result := Vector{}
+func genericOpperation1V(x *Vector, opperation func(float64) float64) *Vector {
+	result := NewVector(nil)
 	result.values = make([]float64, x.len)
 	for i := 0; i < x.len; i++ {
 		result.values[i] = opperation(x.values[i])
@@ -61,8 +73,8 @@ func genericOpperation1V(x Vector, opperation func(float64) float64) Vector {
 	result.updateLen()
 	return result
 }
-func genericOpperation2VScalar(x Vector, y Vector, opperation func(float64, float64) float64) Vector {
-	result := Vector{}
+func genericOpperation2VScalar(x *Vector, y *Vector, opperation func(float64, float64) float64) *Vector {
+	result := NewVector(nil)
 
 	if x.len == y.len {
 

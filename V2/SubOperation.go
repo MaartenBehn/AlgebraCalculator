@@ -15,7 +15,7 @@ func (o SubOperation) getRank() int {
 func (o SubOperation) isSolvable() bool {
 	return true
 }
-func (o SubOperation) solve(term *Term, index int) bool {
+func (o SubOperation) solve(term *Term, index int) (bool, bool) {
 	termPart := term.parts[index-1]
 
 	if termPart.getType() == TypVector {
@@ -31,12 +31,13 @@ func (o SubOperation) solve(term *Term, index int) bool {
 			}
 			term.setSub(index-1, index, NewTerm([]ITermPart{result}))
 		}
+		return false, false
 	}
-	return false
+	return false, true
 }
 func (o SubOperation) print() {
 	fmt.Print("." + o.configuration)
 }
-func (o SubOperation) getSimplify() int {
+func (o SubOperation) getSimplify() float64 {
 	return SimplifyNone
 }

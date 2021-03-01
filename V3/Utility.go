@@ -1,4 +1,4 @@
-package V2
+package V3
 
 import (
 	"log"
@@ -33,29 +33,10 @@ func removeEmptiStrings(strings []string) []string {
 	return strings
 }
 
-func getVector(part string) Vector {
+func getVector(part string) *Vector {
 	number, err := strconv.ParseFloat(part, 64)
 	if err != nil {
 		log.Panic("Could not parse number!")
 	}
-	return Vector{values: []float64{number}, len: 1}
-}
-
-func areNameBasedTermsEqual(term1 Term, term2 Term) bool {
-
-	if len(term1.parts) != len(term2.parts) {
-		return false
-	}
-
-	counter := len(term1.parts)
-	for _, termPart := range term1.parts {
-		for _, termPart2 := range term2.parts {
-			if termPart.(NameBasedTermPart).getName() == termPart2.(NameBasedTermPart).getName() {
-				counter--
-				break
-			}
-		}
-	}
-
-	return counter == 0
+	return NewVector([]float64{number})
 }
