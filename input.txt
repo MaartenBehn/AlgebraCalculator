@@ -1,1 +1,1 @@
-g<t> = 3 + 5 + t + sin<t>
+g<a b c d> = ( a + a ) * ( a + a )

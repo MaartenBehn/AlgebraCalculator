@@ -1,5 +1,7 @@
 package V3
 
+import "fmt"
+
 type INode interface {
 	setParent(partent INode)
 	getParent() INode
@@ -106,7 +108,11 @@ func (t *Node) simplify() {
 	}
 }
 func (t *Node) print() {
-	for _, child := range t.childs {
-		child.print()
+	if len(t.childs) > 0 {
+		fmt.Print("(")
+		for _, child := range t.childs {
+			child.print()
+		}
+		fmt.Print(")")
 	}
 }

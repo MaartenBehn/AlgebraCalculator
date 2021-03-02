@@ -3,5 +3,5 @@ package main
 import "AlgebraCalculator/V3"
 
 func main() {
-	V3.Run("input.txt")
+	V3.Run()
 }

@@ -39,15 +39,15 @@ func (n *NamedNode) print() {
 	n.Node.print()
 }
 
-var namedNodeSlice []INamedNode
+var solvableTermNodes []INamedNode
 
 func setUpNamedNodeSlice() {
 	for _, x := range mathOperators {
-		namedNodeSlice = append(namedNodeSlice, x)
+		solvableTermNodes = append(solvableTermNodes, x)
 	}
 
 	for _, x := range mathFunctions {
-		namedNodeSlice = append(namedNodeSlice, x)
+		solvableTermNodes = append(solvableTermNodes, x)
 	}
 
 }

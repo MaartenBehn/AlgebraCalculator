@@ -40,3 +40,7 @@ func getVector(part string) *Vector {
 	}
 	return NewVector([]float64{number})
 }
+
+func getInt(rune uint8) int {
+	return int(rune) - '0'
+}

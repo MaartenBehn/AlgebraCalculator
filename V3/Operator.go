@@ -51,9 +51,11 @@ func (o *Operator) solve() {
 	}
 }
 func (o *Operator) print() {
+	fmt.Print("(")
 	o.childs[0].print()
 	fmt.Printf(" %s ", o.name)
 	o.childs[1].print()
+	fmt.Print(")")
 }
 
 func appandVector(x *Vector, y *Vector) *Vector {

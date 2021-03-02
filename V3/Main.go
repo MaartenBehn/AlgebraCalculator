@@ -5,11 +5,10 @@ import (
 	"strings"
 )
 
-func Run(filename string) {
-
+func Run() {
 	setUpNamedNodeSlice()
 
-	buf, err := ioutil.ReadFile(filename)
+	buf, err := ioutil.ReadFile("simpRules.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -21,11 +20,38 @@ func Run(filename string) {
 			continue
 		}
 
+		rule := parseSimpRule(line)
+
+		simpRules = append(simpRules, rule)
+	}
+
+	buf, err = ioutil.ReadFile("input.txt")
+	if err != nil {
+		panic(err)
+	}
+	content = string(buf)
+	lines = strings.Split(content, "\r\n")
+
+	for _, line := range lines {
+		if !strings.Contains(line, "=") {
+			continue
+		}
+
 		publicTerm := parseTerm(line)
 
 		result := publicTerm.copy()
 
-		result.solve()
+		run := true
+		for run {
+			result.solve()
+
+			run = false
+			for _, rule := range simpRules {
+				if rule.tryRule(result, rule.search) {
+					run = true
+				}
+			}
+		}
 
 		result.print()
 	}

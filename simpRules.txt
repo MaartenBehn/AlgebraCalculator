@@ -1,0 +1,33 @@
+var_0 + vec_0 = vec_0 + var_0
+var_0 * vec_0 = vec_0 * var_0
+
+0 + var_0 = var_0
+1 * var_0 = var_0
+
+var_0 - var_0 = 0
+var_0 + var_0 = 2 * var_0
+
+vec_0 - var_0 = vec_0 + -1 * var_0
+var_0 - vec_0 = -1 * vec_0 + var_0
+
+var_0 / vec_0 = 1 / vec_0 * var_0
+vec_0 / var_0 = vec_0 * var_0 pow -1
+
+var_0 * var_0 = var_0 pow 2
+
+Klammern aufloesen: +
+( var_0 + var_1 ) * var_2 = var_0 * var_2 + var_1 * var_2
+var_0 * ( var_1 + var_2 ) = var_0 * var_1 + var_0 * var_2
+
+( var_0 + var_0 ) * ( var_0 + var_0 ) = 4 * var_0 pow 2
+( var_0 + var_1 ) * ( var_0 + var_1 ) = var_0 pow 2 + var_1 pow 2 + 2 * var_0 * var_1
+( var_0 + var_1 ) * ( var_2 + var_3 ) = var_0 * var_2 + var_1 * var_2 + var_0 * var_3 + var_1 * var_3
+
+Klammern aufloesen: +
+( var_0 - var_1 ) * var_2 = var_0 * var_2 - var_1 * var_2
+var_0 * ( var_1 - var_2 ) = var_0 * var_1 - var_0 * var_2
+
+
+( var_0 + var_1 ) * ( var_0 + var_1 ) = var_0 pow 2 + var_1 pow 2 + 2 * var_0 * var_1
+( var_0 + var_1 ) * ( var_2 + var_3 ) = var_0 * var_2 + var_1 * var_2 + var_0 * var_3 + var_1 * var_3
+
