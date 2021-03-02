@@ -1,6 +1,9 @@
 package V3
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type INode interface {
 	setParent(partent INode)
@@ -12,6 +15,7 @@ type INode interface {
 
 	getType() int
 	getRank() int
+	getDefiner() string
 
 	copy() INode
 	solve()
@@ -45,6 +49,7 @@ type Node struct {
 	typeId    int
 	rank      int
 	maxChilds int
+	definer   string
 }
 
 func NewNode(typeId int, rank int, maxChilds int) *Node {
@@ -52,6 +57,7 @@ func NewNode(typeId int, rank int, maxChilds int) *Node {
 		typeId:    typeId,
 		rank:      rank,
 		maxChilds: maxChilds,
+		definer:   strconv.Itoa(typeId),
 	}
 }
 
@@ -84,6 +90,9 @@ func (t Node) getType() int {
 }
 func (t Node) getRank() int {
 	return t.rank
+}
+func (t Node) getDefiner() string {
+	return t.definer
 }
 
 func (t *Node) copy() INode {

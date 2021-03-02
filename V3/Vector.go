@@ -20,6 +20,10 @@ func NewVector(values []float64) *Vector {
 	}
 }
 
+func (v *Vector) getDefiner() string {
+	return v.definer + v.toString()
+}
+
 func (v *Vector) copy() INode {
 	copy := NewVector(v.values)
 	copy.childs = make([]INode, len(v.childs))
@@ -33,27 +37,7 @@ func (v *Vector) copy() INode {
 }
 func (v Vector) print() {
 	v.Node.print()
-
-	if v.len > 1 {
-		fmt.Print("( ")
-	}
-
-	for i, value := range v.values {
-
-		if value == math.Trunc(value) {
-			fmt.Printf("%.0f", value)
-		} else {
-			fmt.Printf("%.4f", value)
-		}
-
-		if i < v.len-1 {
-			fmt.Print(" , ")
-		}
-	}
-
-	if v.len > 1 {
-		fmt.Print(" )")
-	}
+	fmt.Print(v.toString())
 }
 
 func (v *Vector) append(v2 *Vector) {
@@ -62,6 +46,30 @@ func (v *Vector) append(v2 *Vector) {
 }
 func (v *Vector) updateLen() {
 	v.len = len(v.values)
+}
+func (v *Vector) toString() string {
+	var text string
+	if v.len > 1 {
+		text += "( "
+	}
+
+	for i, value := range v.values {
+
+		if value == math.Trunc(value) {
+			text += fmt.Sprintf("%.0f", value)
+		} else {
+			text += fmt.Sprintf("%.4f", value)
+		}
+
+		if i < v.len-1 {
+			text += " , "
+		}
+	}
+
+	if v.len > 1 {
+		text += " )"
+	}
+	return text
 }
 
 func genericOpperation1V(x *Vector, opperation func(float64) float64) *Vector {

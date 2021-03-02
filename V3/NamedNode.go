@@ -13,6 +13,7 @@ type NamedNode struct {
 }
 
 func NewNamedNode(node *Node, name string) *NamedNode {
+	node.definer = node.definer + name
 	return &NamedNode{
 		Node: node,
 		name: name,

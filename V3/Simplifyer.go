@@ -3,6 +3,7 @@ package V3
 const (
 	TypSimpVector   = 1001
 	TypSimpVariable = 1002
+	TypSimpAll      = 1003
 )
 
 type SimpNode struct {
@@ -18,27 +19,34 @@ func NewSimpNode(typeId int, id int) *SimpNode {
 }
 
 type SimpIdMapper struct {
-	vectors       []*Vector
-	sameVectors   []int
-	variables     []*Variable
-	sameVariables []int
+	vectors   []*Vector
+	variables []*Variable
+	all       []INode
 }
 
 func (s *SimpIdMapper) addVectorId(vector *Vector) int {
 	s.vectors = append(s.vectors, vector)
 	for i, testVector := range s.vectors {
-		if testVector == vector { // TODO: Check if this actually works
+		if testVector.getDefiner() == vector.getDefiner() { // TODO: Check if this actually works
 
 			return i
 		}
 	}
 	return len(s.vectors) - 1
 }
-
 func (s *SimpIdMapper) addVariableId(variable *Variable) int {
 	s.variables = append(s.variables, variable)
 	for i, testVariable := range s.variables {
-		if testVariable.name == variable.name {
+		if testVariable.getDefiner() == variable.getDefiner() {
+			return i
+		}
+	}
+	return len(s.variables) - 1
+}
+func (s *SimpIdMapper) addAllId(node INode) int {
+	s.all = append(s.all, node)
+	for i, testAll := range s.all {
+		if testAll.getDefiner() == node.getDefiner() {
 			return i
 		}
 	}
@@ -82,6 +90,9 @@ func simpEqual(node INode, simpNode INode, mapper *SimpIdMapper) bool {
 	}
 
 	switch simpNode.getType() {
+	case TypSimpAll:
+		return mapper.addAllId(node) <= simpNode.(*SimpNode).id
+
 	case TypSimpVector:
 		return node.getType() == TypVector && mapper.addVectorId(node.(*Vector)) <= simpNode.(*SimpNode).id
 
@@ -114,9 +125,19 @@ func (s SimpRule) simpReplace(node INode, simpNode INode, mapper *SimpIdMapper) 
 	switch simpNode.getType() {
 	case TypSimpVector:
 		replace = mapper.vectors[simpNode.(*SimpNode).id].copy()
+		break
 
 	case TypSimpVariable:
 		replace = mapper.variables[simpNode.(*SimpNode).id].copy()
+		break
+
+	case TypSimpAll:
+		replace = mapper.all[simpNode.(*SimpNode).id].copy()
+		break
+	}
+
+	if len(node.getChilds()) == 0 {
+		node.setChilds(replace.getChilds())
 	}
 
 	replaceNode(node, replace)

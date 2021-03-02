@@ -47,15 +47,18 @@ func parseRoot(parts []string, variables []*Variable) INode {
 		}
 
 		if strings.Contains(part, "vec_") {
-
 			id := getInt(part[4])
 			puschChild(NewSimpNode(TypSimpVector, id), currentNode)
 		}
 
 		if strings.Contains(part, "var_") {
-
 			id := getInt(part[4])
 			puschChild(NewSimpNode(TypSimpVariable, id), currentNode)
+		}
+
+		if strings.Contains(part, "all_") {
+			id := getInt(part[4])
+			puschChild(NewSimpNode(TypSimpAll, id), currentNode)
 		}
 
 		for _, solvableTermNode := range solvableTermNodes {

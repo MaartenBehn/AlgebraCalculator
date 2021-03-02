@@ -1,1 +1,1 @@
-g<a b c d> = ( a + a ) * ( a + a )
+g<a b c d> = ( a + b ) + ( a + b )

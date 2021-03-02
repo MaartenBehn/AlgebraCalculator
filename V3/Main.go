@@ -13,7 +13,7 @@ func Run() {
 		panic(err)
 	}
 	content := string(buf)
-	lines := strings.Split(content, "\r\n")
+	lines := splitAny(content, "\n\r")
 
 	for _, line := range lines {
 		if !strings.Contains(line, "=") {
