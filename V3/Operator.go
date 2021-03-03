@@ -50,12 +50,67 @@ func (o *Operator) solve() {
 		result.childs = nil
 	}
 }
+func (o *Operator) sort() bool {
+	sorted := o.Node.sort()
+
+	child0 := o.childs[0]
+	child1 := o.childs[1]
+
+	if child0.getType() != TypOpperator && child1.getType() != TypOpperator && (o.name == "+" || o.name == "*") {
+
+		if child0.getDeepDefiner(false) > child1.getDeepDefiner(false) {
+			o.childs[1] = child0
+			o.childs[0] = child1
+			return true
+		}
+	}
+
+	if len(child0.getChilds()) < 2 {
+		return sorted
+	}
+
+	child2 := child0.getChilds()[1]
+	if child0.getType() == TypOpperator && ((o.name == "+" && child0.(INamedNode).getName() == "+") ||
+		(o.name == "*" && child0.(INamedNode).getName() == "*")) {
+
+		if child2.getDeepDefiner(false) > child1.getDeepDefiner(false) {
+			child2.setParent(o)
+			o.childs[1] = child2
+
+			child1.setParent(child0)
+			childs := child0.getChilds()
+			childs[1] = child1
+			child0.setChilds(childs)
+			return true
+		}
+	}
+	return sorted
+}
 func (o *Operator) print() {
 	fmt.Print("(")
+	if len(o.childs) < 1 {
+		return
+	}
 	o.childs[0].print()
 	fmt.Printf(" %s ", o.name)
+	if len(o.childs) < 2 {
+		return
+	}
 	o.childs[1].print()
 	fmt.Print(")")
+}
+func (o *Operator) printTree(indentation int) {
+	if len(o.childs) < 1 {
+		return
+	}
+	o.childs[0].printTree(indentation + 1)
+
+	printIndentation(indentation)
+	fmt.Printf("%s\n", o.name)
+	if len(o.childs) < 2 {
+		return
+	}
+	o.childs[1].printTree(indentation + 1)
 }
 
 func appandVector(x *Vector, y *Vector) *Vector {

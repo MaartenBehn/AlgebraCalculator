@@ -15,12 +15,14 @@ type INode interface {
 
 	getType() int
 	getRank() int
-	getDefiner() string
+	getDefiner(vaules bool) string
+	getDeepDefiner(vaules bool) string
 
 	copy() INode
 	solve()
-	simplify()
+	sort() bool
 	print()
+	printTree(indentation int)
 }
 
 const (
@@ -29,9 +31,8 @@ const (
 	TypVariable     = 2
 	TypOpperator    = 3
 	TypFunction     = 4
-	TypBrace        = 5
-	TypSubOperation = 6
-	TypTerm         = 7
+	TypSubOperation = 5
+	TypTerm         = 6
 
 	RankNone          = 0
 	RankAppend        = 1
@@ -91,8 +92,16 @@ func (t Node) getType() int {
 func (t Node) getRank() int {
 	return t.rank
 }
-func (t Node) getDefiner() string {
+func (t Node) getDefiner(vaules bool) string {
 	return t.definer
+}
+func (t Node) getDeepDefiner(vaules bool) string {
+	var deepDefiner string
+	for _, child := range t.childs {
+		deepDefiner += child.getDeepDefiner(vaules)
+	}
+	deepDefiner += t.definer
+	return deepDefiner
 }
 
 func (t *Node) copy() INode {
@@ -111,10 +120,14 @@ func (t *Node) solve() {
 		child.solve()
 	}
 }
-func (t *Node) simplify() {
+func (t *Node) sort() bool {
+	sorted := false
 	for _, child := range t.childs {
-		child.simplify()
+		if child.sort() {
+			sorted = true
+		}
 	}
+	return sorted
 }
 func (t *Node) print() {
 	if len(t.childs) > 0 {
@@ -124,4 +137,72 @@ func (t *Node) print() {
 		}
 		fmt.Print(")")
 	}
+}
+func (t *Node) printTree(indentation int) {
+	fmt.Print("\n")
+	indentation++
+	if len(t.childs) > 0 {
+		for _, child := range t.childs {
+			child.printTree(indentation)
+		}
+	}
+	indentation--
+}
+func printIndentation(indentation int) {
+	for i := 0; i < indentation; i++ {
+		if i == indentation-1 {
+			fmt.Print("|> ")
+		} else if i == 0 {
+			fmt.Print("|  ")
+		} else {
+			fmt.Print("   ")
+		}
+
+	}
+}
+
+// replaceNode replaces old to new and updates the partent and child pointers to new.
+func replaceNode(old INode, new INode) {
+
+	// Copy Node Data to new
+	new.setChilds(old.getChilds())
+	new.setParent(old.getParent())
+
+	// Set the partents of the childs to new
+	for _, child := range new.getChilds() {
+		child.setParent(new)
+	}
+
+	// Set the childs of the partent to new
+	if new.getParent() != nil {
+		childs := new.getParent().getChilds()
+		for i, child := range childs {
+			if child == old {
+				childs[i] = new
+			}
+		}
+		new.getParent().setChilds(childs)
+	}
+}
+
+// insertNode replaces old to new but keep the childs of new while conectiong the partent of old.
+func insertNode(old INode, new INode) {
+
+	// Copy Partent pointer
+	new.setParent(old.getParent())
+
+	// Set new as child of partent of old
+	if new.getParent() != nil {
+		childs := new.getParent().getChilds()
+		for i, child := range childs {
+			if child == old {
+				childs[i] = new
+			}
+		}
+		new.getParent().setChilds(childs)
+	}
+}
+
+func deepEqual(node1 INode, node2 INode) bool {
+	return node1.getDeepDefiner(true) == node2.getDeepDefiner(true)
 }

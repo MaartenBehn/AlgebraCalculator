@@ -36,8 +36,13 @@ func (n *NamedNode) copy() INode {
 	return copy
 }
 func (n *NamedNode) print() {
-	fmt.Printf(n.name)
+	fmt.Print(n.name)
 	n.Node.print()
+}
+func (n *NamedNode) printTree(indetation int) {
+	printIndentation(indetation)
+	fmt.Print(n.name)
+	n.Node.printTree(indetation)
 }
 
 var solvableTermNodes []INamedNode

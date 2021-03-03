@@ -20,8 +20,20 @@ func NewVector(values []float64) *Vector {
 	}
 }
 
-func (v *Vector) getDefiner() string {
-	return v.definer + v.toString()
+func (v *Vector) getDefiner(vaules bool) string {
+	if vaules {
+		return v.definer + v.toString()
+	}
+	return v.definer
+}
+
+func (v *Vector) getDeepDefiner(vaules bool) string {
+	var deepDefiner string
+	for _, child := range v.childs {
+		deepDefiner += child.getDeepDefiner(vaules)
+	}
+	deepDefiner += v.getDefiner(vaules)
+	return deepDefiner
 }
 
 func (v *Vector) copy() INode {
@@ -38,6 +50,11 @@ func (v *Vector) copy() INode {
 func (v Vector) print() {
 	v.Node.print()
 	fmt.Print(v.toString())
+}
+func (v Vector) printTree(indentation int) {
+	printIndentation(indentation)
+	fmt.Print(v.toString())
+	v.Node.printTree(indentation)
 }
 
 func (v *Vector) append(v2 *Vector) {

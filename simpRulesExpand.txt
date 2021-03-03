@@ -1,26 +1,20 @@
-// vec -> Vector
-// var -> Variable
-// ver -> Vector or Variable
-// all -> All Expressions
-
-!var_0i
-
-// Move Rules:
-
-// Fix wrong Brace order
-all_0i + ( all_1i + all_2i ) = all_0i + all_1i + all_2i
-all_0i * ( all_1i * all_2i ) = all_0i * all_1i * all_2i
-
-// I try to over all Vectors to the left so they can be solved.
-!vec_0 + vec_1 = vec_1 + !vec_0
-!vec_0 * vec_1 = vec_1 * !vec_0
-
 // Delete Rules:
 0 + all_0 = all_0
 1 * all_0 = all_0
 0 * all_0 = 0
 all_0 - all_0 = 0
 all_0 / 1 = all_0
+
+// Fix wrong Brace order
+all_0i + ( all_1i + all_2i ) = all_0i + all_1i + all_2i
+all_0i * ( all_1i * all_2i ) = all_0i * all_1i * all_2i
+
+// Remove Division
+all_0 / vec_1 = 1 / vec_1 * all_0
+all_0 / all_1 = all_0 * all_1 pow -1
+
+//Remove Subtraction
+all_0 - all_1 = all_0 + -1 * all_1
 
 // Brackte Rules:
 - All the same
@@ -53,29 +47,3 @@ all_0i * ( all_1i + all_2i ) = all_0 * all_1 + all_0 * all_2
 all_0i * ( all_1i - all_2i ) = all_0 * all_1 - all_0 * all_2
 ( all_0i + all_1i ) * all_2i = all_2 * all_0 + all_2 * all_1
 ( all_0i - all_1i ) * all_2i = all_2 * all_0 - all_2 * all_1
-
-// Merge Addition
-vec_0 * all_1 + all_1 = ( vec_0 + 1 ) * all_1
-all_0 + vec_1 * all_2 + all_2 = all_0 + ( vec_1 + 1 ) * all_2
-
-all_0 + all_0 = 2 * all_0
-all_0 + all_1 + all_1 = all_0 + 2 * all_1
-
-( vec_0 * all_1 ) + ( vec_2 * all_1 ) = ( vec_0 + vec_2 ) * all_1
-all_0 + ( vec_1 * all_2 ) + ( vec_3 * all_2 ) = all_0 + ( vec_1 + vec_3 ) * all_2
-
-// Merge Pow
-all_0 pow vec_1 * all_0 = all_0 pow ( vec_1 + 1 )
-all_0 pow vec_1 pow vec_1 = all_0 pow ( vec_1 * 2 )
-all_0 pow vec_1 pow vec_2 = all_0 pow ( vec_1 * vec_2 )
-
-// Merge Mul
-all_0 * all_0 = all_0 pow 2
-all_0 * all_1 * all_1 = all_0 * all_1 pow 2
-
-// Remove Division
-all_0 / vec_1 = 1 / vec_1 * all_0
-all_0 / all_1 = all_0 * all_1 pow -1
-
-//Remove Subtraction
-all_0 - all_1 = all_0 + -1 * all_1

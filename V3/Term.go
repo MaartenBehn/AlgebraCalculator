@@ -41,5 +41,4 @@ func (t *Term) print() {
 	fmt.Print(" = ")
 
 	t.Node.print()
-	fmt.Print("\n")
 }

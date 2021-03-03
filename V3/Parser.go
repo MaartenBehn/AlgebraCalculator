@@ -33,32 +33,51 @@ func parseRoot(parts []string, variables []*Variable) INode {
 
 	var currentNode INode = NewNode(TypNone, RankNone, 0)
 	root := currentNode
+
+	var barceEnd INode
 	for _, part := range parts {
 
 		if part == "(" {
+			barceEnd = currentNode
+
 			puschChild(NewNode(TypNone, RankNone, 0), currentNode)
 			currentNode = currentNode.getChilds()[len(currentNode.getChilds())-1]
 			continue
 		}
 
 		if part == ")" {
-			currentNode = currentNode.getParent()
+			currentNode = barceEnd
 			continue
 		}
 
-		if strings.Contains(part, "vec_") {
-			id := getInt(part[4])
-			puschChild(NewSimpNode(TypSimpVector, id), currentNode)
-		}
+		if strings.Contains(part, "_") {
 
-		if strings.Contains(part, "var_") {
-			id := getInt(part[4])
-			puschChild(NewSimpNode(TypSimpVariable, id), currentNode)
-		}
+			inverted := strings.Contains(part, "!")
+			invertedOffset := 0
+			if inverted {
+				invertedOffset = 1
+			}
 
-		if strings.Contains(part, "all_") {
-			id := getInt(part[4])
-			puschChild(NewSimpNode(TypSimpAll, id), currentNode)
+			typ := 0
+			switch part[:3+invertedOffset] {
+			case "vec":
+				typ = TypSimpVec
+				break
+			case "var":
+				typ = TypSimpVar
+				break
+			case "ver":
+				typ = TypSimpVer
+				break
+			case "all":
+				typ = TypSimpAll
+				break
+			}
+			id := getInt(part[4+invertedOffset])
+			allIds := len(part) >= (6+invertedOffset) && part[5+invertedOffset] == 'i'
+
+			simpNode := NewSimpNode(typ, id, inverted, allIds)
+			puschChild(simpNode, currentNode)
 		}
 
 		for _, solvableTermNode := range solvableTermNodes {
@@ -66,10 +85,9 @@ func parseRoot(parts []string, variables []*Variable) INode {
 				termNode := solvableTermNode.copy()
 				rank := termNode.getRank()
 
-				parentNode, parentRank := findEmptiInPartentWithRankLevel(currentNode, rank)
+				parentNode := spotAcordingToRank(currentNode, rank)
 
-				if parentRank >= rank {
-
+				if parentNode.getType() == TypNone {
 					replaceNode(parentNode, termNode)
 					currentNode = termNode
 
@@ -77,7 +95,7 @@ func parseRoot(parts []string, variables []*Variable) INode {
 						root = currentNode
 					}
 				} else {
-					puschChild(termNode, currentNode)
+					puschChild(termNode, parentNode)
 					currentNode = termNode
 				}
 			}
@@ -109,7 +127,6 @@ func parseRoot(parts []string, variables []*Variable) INode {
 		}
 
 		if isNumber(part) {
-
 			puschChild(getVector(part), currentNode)
 			continue
 		}
@@ -117,21 +134,24 @@ func parseRoot(parts []string, variables []*Variable) INode {
 	return root
 }
 
-func findEmptiInPartentWithRankLevel(current INode, rankLevel int) (INode, int) {
-	if current.getType() == TypNone {
-		return current, rankLevel
-	} else if current.getRank() < rankLevel {
-		rankLevel = current.getRank()
-	}
+func spotAcordingToRank(current INode, rank int) INode {
+	if current.getRank() >= rank {
+		partent := current.getParent()
 
-	if current.getParent() != nil {
-		return findEmptiInPartentWithRankLevel(current.getParent(), rankLevel)
-	}
+		if partent == nil {
+			partent = NewNode(0, 0, 0)
+			current.setParent(partent)
+			partent.setChilds([]INode{current})
+		}
 
-	newPartent := &Node{}
-	current.setParent(newPartent)
-	newPartent.addChild(current, true)
-	return findEmptiInPartentWithRankLevel(newPartent, rankLevel)
+		if partent.getRank() <= current.getRank() {
+			return spotAcordingToRank(partent, rank)
+		}
+
+		return current
+	} else {
+		return current
+	}
 }
 
 func puschChild(child INode, inNode INode) {
@@ -148,25 +168,6 @@ func puschChild(child INode, inNode INode) {
 		inNode.addChild(child, true)
 	}
 	child.setParent(inNode)
-}
-func replaceNode(old INode, new INode) {
-
-	new.setChilds(old.getChilds())
-	new.setParent(old.getParent())
-
-	for _, child := range new.getChilds() {
-		child.setParent(new)
-	}
-
-	if new.getParent() != nil {
-		childs := new.getParent().getChilds()
-		for i, child := range childs {
-			if child == old {
-				childs[i] = new
-			}
-		}
-		new.getParent().setChilds(childs)
-	}
 }
 
 func parseSimpRule(text string) SimpRule {
@@ -193,6 +194,7 @@ func parseSimpRule(text string) SimpRule {
 	}
 
 	return SimpRule{
+		base:    text,
 		search:  root1,
 		replace: root2,
 	}

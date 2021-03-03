@@ -1,103 +1,120 @@
 package V3
 
+import "strconv"
+
 const (
-	TypSimpVector   = 1001
-	TypSimpVariable = 1002
-	TypSimpAll      = 1003
+	TypSimpVec = 1001
+	TypSimpVar = 1002
+	TypSimpVer = 1003
+	TypSimpAll = 1004
 )
 
 type SimpNode struct {
 	*Node
-	id int
+	id       int
+	allIds   bool
+	inverted bool
 }
 
-func NewSimpNode(typeId int, id int) *SimpNode {
-	return &SimpNode{
-		Node: NewNode(typeId, 0, 0),
-		id:   id,
+func NewSimpNode(typeId int, id int, inverted bool, allIds bool) *SimpNode {
+	node := &SimpNode{
+		Node:     NewNode(typeId, 0, 0),
+		id:       id,
+		inverted: inverted,
+		allIds:   allIds,
 	}
+	node.definer += strconv.Itoa(id)
+	return node
 }
 
-type SimpIdMapper struct {
-	vectors   []*Vector
-	variables []*Variable
-	all       []INode
+func (s *SimpNode) copy() INode {
+	return NewSimpNode(s.typeId, s.id, s.inverted, s.allIds)
 }
 
-func (s *SimpIdMapper) addVectorId(vector *Vector) int {
-	s.vectors = append(s.vectors, vector)
-	for i, testVector := range s.vectors {
-		if testVector.getDefiner() == vector.getDefiner() { // TODO: Check if this actually works
+type SimpDataBuffer struct {
+	nodes []INode
+}
 
-			return i
+func (s *SimpDataBuffer) checkSimpNode(node INode, simpNode INode) bool {
+
+	index := len(s.nodes)
+	for i, testnode := range s.nodes {
+		if deepEqual(node, testnode) {
+			index = i
+			break
 		}
 	}
-	return len(s.vectors) - 1
-}
-func (s *SimpIdMapper) addVariableId(variable *Variable) int {
-	s.variables = append(s.variables, variable)
-	for i, testVariable := range s.variables {
-		if testVariable.getDefiner() == variable.getDefiner() {
-			return i
-		}
+
+	if simpNode.(*SimpNode).id >= len(s.nodes) {
+		s.nodes = append(s.nodes, node)
 	}
-	return len(s.variables) - 1
-}
-func (s *SimpIdMapper) addAllId(node INode) int {
-	s.all = append(s.all, node)
-	for i, testAll := range s.all {
-		if testAll.getDefiner() == node.getDefiner() {
-			return i
-		}
-	}
-	return len(s.variables) - 1
+
+	debug := simpNode.(*SimpNode).id == index || (simpNode.(*SimpNode).allIds && simpNode.(*SimpNode).id >= index)
+	return debug
 }
 
-var simpRules []SimpRule
+func (s *SimpDataBuffer) getReplacement(node INode) INode {
+	replacement := node
+
+	if node.getType() >= 1000 {
+		replacement = s.nodes[node.(*SimpNode).id]
+	}
+
+	return replacement
+}
 
 type SimpRule struct {
+	line    int
+	base    string
 	search  INode
 	replace INode
 }
 
-func (s SimpRule) tryRule(node INode, simpNode INode) bool {
+func (s SimpRule) applyRule(node INode, simpNode INode) bool {
 	for _, child := range node.getChilds() {
-		if s.tryRule(child, simpNode) {
+		if s.applyRule(child, simpNode) {
 			return true
 		}
 	}
 
-	idMapper := &SimpIdMapper{}
-	if simpEqual(node, s.search, idMapper) {
+	dataBuffer := &SimpDataBuffer{}
+	if simpDoesMap(node, s.search, dataBuffer) {
 
-		s.simpReplace(node, s.replace, idMapper)
+		replacement := dataBuffer.getReplacement(s.replace.copy())
 
+		insertNode(node, replacement)
+
+		for _, child := range replacement.getChilds() {
+			s.simpInsert(child, dataBuffer)
+		}
 		return true
 	}
 	return false
 }
 
-func simpEqual(node INode, simpNode INode, mapper *SimpIdMapper) bool {
+func simpDoesMap(node INode, simpNode INode, dataBuffer *SimpDataBuffer) bool {
 	for i, child := range simpNode.getChilds() {
 
 		if i >= len(node.getChilds()) {
 			return false
 		}
 
-		if !simpEqual(node.getChilds()[i], child, mapper) {
+		if !simpDoesMap(node.getChilds()[i], child, dataBuffer) {
 			return false
 		}
 	}
 
 	switch simpNode.getType() {
+	case TypSimpVec:
+		return (node.getType() == TypVector || (node.getType() != TypVector && simpNode.(*SimpNode).inverted)) &&
+			dataBuffer.checkSimpNode(node, simpNode)
+
+	case TypSimpVar:
+		return (node.getType() == TypVariable || (node.getType() != TypVariable && simpNode.(*SimpNode).inverted)) &&
+			dataBuffer.checkSimpNode(node, simpNode)
+
 	case TypSimpAll:
-		return mapper.addAllId(node) <= simpNode.(*SimpNode).id
-
-	case TypSimpVector:
-		return node.getType() == TypVector && mapper.addVectorId(node.(*Vector)) <= simpNode.(*SimpNode).id
-
-	case TypSimpVariable:
-		return node.getType() == TypVariable && mapper.addVariableId(node.(*Variable)) <= simpNode.(*SimpNode).id
+		return dataBuffer.checkSimpNode(node, simpNode) && !simpNode.(*SimpNode).inverted
 
 	case TypOpperator:
 		return node.getType() == TypOpperator && node.(INamedNode).getName() == simpNode.(INamedNode).getName()
@@ -109,36 +126,16 @@ func simpEqual(node INode, simpNode INode, mapper *SimpIdMapper) bool {
 		return node.getType() == TypVector && len(node.(*Vector).values) == 1 && node.(*Vector).values[0] == simpNode.(*Vector).values[0]
 
 	}
-
 	return false
 }
 
-func (s SimpRule) simpReplace(node INode, simpNode INode, mapper *SimpIdMapper) {
-	node.setChilds(nil)
-	for _, simpChild := range simpNode.getChilds() {
-		child := NewNode(TypNone, RankNone, 0)
-		puschChild(child, node)
-		s.simpReplace(child, simpChild, mapper)
+func (s SimpRule) simpInsert(simpNode INode, dataBuffer *SimpDataBuffer) {
+
+	replacement := dataBuffer.getReplacement(simpNode)
+
+	insertNode(simpNode, replacement)
+
+	for _, child := range replacement.getChilds() {
+		s.simpInsert(child, dataBuffer)
 	}
-
-	replace := simpNode.copy()
-	switch simpNode.getType() {
-	case TypSimpVector:
-		replace = mapper.vectors[simpNode.(*SimpNode).id].copy()
-		break
-
-	case TypSimpVariable:
-		replace = mapper.variables[simpNode.(*SimpNode).id].copy()
-		break
-
-	case TypSimpAll:
-		replace = mapper.all[simpNode.(*SimpNode).id].copy()
-		break
-	}
-
-	if len(node.getChilds()) == 0 {
-		node.setChilds(replace.getChilds())
-	}
-
-	replaceNode(node, replace)
 }
