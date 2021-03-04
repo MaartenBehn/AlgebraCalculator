@@ -1,9 +1,4 @@
-// Delete Rules:
-0 + all_0 = all_0
-1 * all_0 = all_0
-0 * all_0 = 0
-all_0 - all_0 = 0
-all_0 / 1 = all_0
+all_0 + var_1 = all_0 + 1 * var_1
 
 // Fix wrong Brace order
 all_0i + ( all_1i + all_2i ) = all_0i + all_1i + all_2i
@@ -47,3 +42,9 @@ all_0i * ( all_1i + all_2i ) = all_0 * all_1 + all_0 * all_2
 all_0i * ( all_1i - all_2i ) = all_0 * all_1 - all_0 * all_2
 ( all_0i + all_1i ) * all_2i = all_2 * all_0 + all_2 * all_1
 ( all_0i - all_1i ) * all_2i = all_2 * all_0 - all_2 * all_1
+
+// Delete Rules:
+0 + all_0 = all_0
+0 * all_0 = 0
+all_0 - all_0 = 0
+all_0 / 1 = all_0
