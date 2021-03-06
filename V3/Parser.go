@@ -1,16 +1,16 @@
 package V3
 
 import (
-	"log"
 	"strings"
 )
 
-func parseTerm(text string) *Term {
+func parseTerm(text string) (*Term, error) {
 
 	parts := strings.Split(text, "=")
+	parts = removeEmptiStrings(parts)
 
 	if len(parts) != 2 {
-		log.Panic("Invalid Variable creation!")
+		return nil, NewError(ErrorTypParsing, ErrorCriticalLevelPartial, "There is not a valid part before or after \"=\" in term!")
 	}
 	parts1 := removeEmptiStrings(splitAny(parts[0], " <>"))
 
@@ -20,34 +20,43 @@ func parseTerm(text string) *Term {
 	}
 	parts2 := splitAny(parts[1], " <>")
 
-	root := parseRoot(parts2, variables)
+	root, err := parseRoot(parts2, variables)
+	if handelError(err) {
+		return nil, NewError(ErrorTypParsing, ErrorCriticalLevelPartial, "Term could not be parsed!")
+	}
 
 	term := NewTerm(parts1[0], variables)
-	puschChild(root, term)
+	err = puschChild(root, term)
+	if err != err {
+		panic(err)
+	}
 
-	return term
+	return term, nil
 }
 
-func parseRoot(parts []string, variables []*Variable) INode {
+func parseRoot(parts []string, variables []*Variable) (INode, error) {
 	parts = removeEmptiStrings(parts)
 
 	var currentNode INode = NewNode(TypNone, RankNone, 0)
 	root := currentNode
 
 	var barceEnd INode
+	var err error
 	for _, part := range parts {
+
+		found := false
 
 		if part == "(" {
 			barceEnd = currentNode
 
-			puschChild(NewNode(TypNone, RankNone, 0), currentNode)
+			err = puschChild(NewNode(TypNone, RankNone, 0), currentNode)
 			currentNode = currentNode.getChilds()[len(currentNode.getChilds())-1]
-			continue
+			found = true
 		}
 
 		if part == ")" {
 			currentNode = barceEnd
-			continue
+			found = true
 		}
 
 		if strings.Contains(part, "_") {
@@ -77,7 +86,8 @@ func parseRoot(parts []string, variables []*Variable) INode {
 			allIds := len(part) >= (6+invertedOffset) && part[5+invertedOffset] == 'i'
 
 			simpNode := NewSimpNode(typ, id, inverted, allIds)
-			puschChild(simpNode, currentNode)
+			err = puschChild(simpNode, currentNode)
+			found = true
 		}
 
 		for _, solvableTermNode := range solvableTermNodes {
@@ -94,16 +104,20 @@ func parseRoot(parts []string, variables []*Variable) INode {
 					if currentNode.getParent() == nil {
 						root = currentNode
 					}
+
 				} else {
-					puschChild(termNode, parentNode)
+					err = puschChild(termNode, parentNode)
 					currentNode = termNode
 				}
+				found = true
+				break
 			}
 		}
 
 		for _, variable := range variables {
 			if variable.getName() == part {
-				puschChild(variable.copy(), currentNode)
+				err = puschChild(variable.copy(), currentNode)
+				found = true
 			}
 		}
 
@@ -112,26 +126,35 @@ func parseRoot(parts []string, variables []*Variable) INode {
 			parts2 = removeEmptiStrings(parts2)
 
 			if len(parts2) != 2 {
-				continue
+
+				found = true
 			}
 
 			if parts2[0] == ")" {
 
-				continue
+				found = true
 			}
 
 			if isNumber(parts2[0]) {
 
-				continue
+				found = true
 			}
 		}
 
 		if isNumber(part) {
-			puschChild(getVector(part), currentNode)
-			continue
+			err = puschChild(getVector(part), currentNode)
+			found = true
+		}
+
+		if !found {
+			err = NewError(ErrorTypParsing, ErrorCriticalLevelPartial, "Expression part "+part+" could not be parsed!")
+		}
+
+		if err != nil {
+			return nil, err
 		}
 	}
-	return root
+	return root, nil
 }
 
 func spotAcordingToRank(current INode, rank int) INode {
@@ -154,31 +177,38 @@ func spotAcordingToRank(current INode, rank int) INode {
 	}
 }
 
-func puschChild(child INode, inNode INode) {
+func puschChild(child INode, inNode INode) error {
 
 	childs := inNode.getChilds()
 	if inNode.getType() != 0 && inNode.getMaxChilds() == 0 {
-		panic("Cant add Child!")
+		return NewError(ErrorTypParsing, ErrorCriticalLevelPartial, "Can't push Child becuase maxChilds is zero!")
 	} else if inNode.getType() != 0 && len(childs) > 0 && len(childs) >= inNode.getMaxChilds() {
 		mostRightChild := childs[len(childs)-1]
-		puschChild(mostRightChild, child)
+		err := puschChild(mostRightChild, child)
+		if err != nil {
+			return err
+		}
 		childs[len(childs)-1] = child
 		inNode.setChilds(childs)
 	} else {
 		inNode.addChild(child, true)
 	}
 	child.setParent(inNode)
+	return nil
 }
 
-func parseSimpRule(text string) SimpRule {
+func parseSimpRule(text string) (SimpRule, error) {
 	parts := strings.Split(text, "=")
 
 	if len(parts) != 2 {
-		log.Panic("Invalid Rule creation!")
+		return SimpRule{}, NewError(ErrorTypParsing, ErrorCriticalLevelFatal, "Rule has not excatily one = !")
 	}
 
 	parts1 := strings.Split(parts[0], " ")
-	root1 := parseRoot(parts1, nil)
+	root1, err := parseRoot(parts1, nil)
+	if handelError(err) {
+		return SimpRule{}, NewError(ErrorTypParsing, ErrorCriticalLevelPartial, "Rule could not be parsed!")
+	}
 
 	if root1.getType() == TypNone {
 		root1 = root1.getChilds()[0]
@@ -186,7 +216,10 @@ func parseSimpRule(text string) SimpRule {
 	}
 
 	parts2 := strings.Split(parts[1], " ")
-	root2 := parseRoot(parts2, nil)
+	root2, err := parseRoot(parts2, nil)
+	if handelError(err) {
+		return SimpRule{}, NewError(ErrorTypParsing, ErrorCriticalLevelPartial, "Rule could not be parsed!")
+	}
 
 	if root2.getType() == TypNone {
 		root2 = root2.getChilds()[0]
@@ -197,5 +230,5 @@ func parseSimpRule(text string) SimpRule {
 		base:    text,
 		search:  root1,
 		replace: root2,
-	}
+	}, nil
 }

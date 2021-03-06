@@ -7,6 +7,7 @@ import (
 )
 
 func Run() {
+
 	setUpNamedNodeSlice()
 
 	var rules [][]SimpRule
@@ -24,9 +25,8 @@ func readRuleList(path string) []SimpRule {
 	var simpRules []SimpRule
 
 	buf, err := ioutil.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
+	handelError(err)
+
 	content := string(buf)
 	lines := splitAny(content, "\n\r")
 
@@ -35,9 +35,12 @@ func readRuleList(path string) []SimpRule {
 			continue
 		}
 
-		rule := parseSimpRule(line)
-		rule.line = i
+		rule, err := parseSimpRule(line)
+		if handelError(err) {
+			continue
+		}
 
+		rule.line = i
 		simpRules = append(simpRules, rule)
 	}
 	return simpRules
@@ -46,9 +49,8 @@ func readRuleList(path string) []SimpRule {
 func readTermList(path string) []INode {
 
 	buf, err := ioutil.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
+	handelError(err)
+
 	content := string(buf)
 	lines := strings.Split(content, "\r\n")
 
@@ -58,7 +60,11 @@ func readTermList(path string) []INode {
 			continue
 		}
 
-		term := parseTerm(line)
+		term, err := parseTerm(line)
+		if handelError(err) {
+			continue
+		}
+
 		terms = append(terms, term)
 	}
 	return terms
