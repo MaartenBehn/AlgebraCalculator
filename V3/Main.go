@@ -7,17 +7,17 @@ import (
 )
 
 func Run() {
-
 	setUpNamedNodeSlice()
 
 	var rules [][]SimpRule
 	rules = append(rules, readRuleList("simpRulesExpand.txt"))
 	rules = append(rules, readRuleList("simpRulesSumUp.txt"))
 
-	terms := readTermList("input.txt")
+	terms := perfomTermList("input.txt", rules)
 
 	for _, term := range terms {
-		solveTerm(term, rules)
+		fmt.Print("\n")
+		term.(*Term).printTerm()
 	}
 }
 
@@ -46,7 +46,7 @@ func readRuleList(path string) []SimpRule {
 	return simpRules
 }
 
-func readTermList(path string) []INode {
+func perfomTermList(path string, rules [][]SimpRule) []INode {
 
 	buf, err := ioutil.ReadFile(path)
 	handelError(err)
@@ -60,24 +60,27 @@ func readTermList(path string) []INode {
 			continue
 		}
 
-		term, err := parseTerm(line)
+		var term INode
+		term, err := parseTerm(line, terms)
 		if handelError(err) {
 			continue
 		}
 
+		term = solveTerm(term, rules)
 		terms = append(terms, term)
 	}
 	return terms
 }
 
 func solveTerm(term INode, rules [][]SimpRule) INode {
-	term = term.copy()
-
-	term.print()
 	fmt.Print("\n")
-	term.printTree(0)
+	term.(*Term).printTerm()
 	fmt.Print("\n")
+	root := term.(*Term).root
 
+	fmt.Print("Parsed:")
+	root.printTree(0)
+	fmt.Print("\n")
 	for _, ruleList := range rules {
 		if ruleList == nil {
 			continue
@@ -89,30 +92,42 @@ func solveTerm(term INode, rules [][]SimpRule) INode {
 			run = false
 			run2 := true
 			for run2 {
-				run2 = term.sort()
+				run2 = root.sort()
 
 				if run2 {
-					fmt.Print("Sort: ")
-					term.print()
+					fmt.Print("Sort:")
+					root.printTree(0)
 					fmt.Print("\n")
 
 					run = true
 				}
 			}
 
-			term.solve()
+			run2 = true
+			for run2 {
+				run2 = root.solve()
+
+				if run2 {
+					fmt.Print("Solve:")
+					root.printTree(0)
+					fmt.Print("\n")
+
+					run = true
+				}
+			}
 
 			run2 = true
 			for run2 {
 				for _, rule := range ruleList {
-					run2 = rule.applyRule(term, rule.search)
+					run2 = rule.applyRule(root, rule.search)
 
 					if run2 {
-						fmt.Printf("%d %s \n", rule.line, rule.base)
-						term.print()
+						fmt.Print("Simpify: ")
+						fmt.Printf("%s", rule.base)
+						root.printTree(0)
 						fmt.Print("\n")
 
-						term.solve()
+						root.solve()
 
 						run = true
 						break
@@ -120,14 +135,11 @@ func solveTerm(term INode, rules [][]SimpRule) INode {
 				}
 			}
 		}
-
-		fmt.Print("\n")
-		term.printTree(0)
-		fmt.Print("\n")
 	}
+	term.(*Term).root = root
 
 	fmt.Print(" => ")
-	term.print()
+	term.(*Term).printTerm()
 	fmt.Print("\n")
 
 	return term

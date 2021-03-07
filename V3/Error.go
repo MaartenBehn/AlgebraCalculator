@@ -14,7 +14,7 @@ const (
 	ErrorTypSimplifying   = "Simplifying Error"
 	ErrorTypErrorhandling = "Errorhandling Error"
 
-	ErrorCriticalLevelNot     = "non critical"
+	ErrorCriticalLevelNon     = "non critical"
 	ErrorCriticalLevelPartial = "partial critical"
 	ErrorCriticalLevelFatal   = "fatal"
 )
@@ -52,7 +52,7 @@ func handelError(err error) bool {
 
 	if reflect.TypeOf(err) == reflect.TypeOf(&Error{}) {
 		switch err.(*Error).critical {
-		case ErrorCriticalLevelNot:
+		case ErrorCriticalLevelNon:
 			fmt.Print(err)
 			fmt.Println(" -> Programm execution was continued.")
 			return false

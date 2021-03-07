@@ -119,8 +119,8 @@ func simpDoesMap(node INode, simpNode INode, dataBuffer *SimpDataBuffer) bool {
 	case TypOpperator:
 		return node.getType() == TypOpperator && node.(INamedNode).getName() == simpNode.(INamedNode).getName()
 
-	case TypFunction:
-		return node.getType() == TypFunction && node.(INamedNode).getName() == simpNode.(INamedNode).getName()
+	case TypMathFunction:
+		return node.getType() == TypMathFunction && node.(INamedNode).getName() == simpNode.(INamedNode).getName()
 
 	case TypVector:
 		return node.getType() == TypVector && len(node.(*Vector).values) == 1 && node.(*Vector).values[0] == simpNode.(*Vector).values[0]

@@ -19,29 +19,31 @@ type INode interface {
 	getDeepDefiner(vaules bool) string
 
 	copy() INode
-	solve()
+	solve() bool
 	sort() bool
 	print()
 	printTree(indentation int)
 }
 
 const (
-	TypNone         = 0
-	TypVector       = 1
-	TypVariable     = 2
-	TypOpperator    = 3
-	TypFunction     = 4
-	TypSubOperation = 5
-	TypTerm         = 6
+	TypNone            = 0
+	TypVector          = 1
+	TypVariable        = 2
+	TypOpperator       = 3
+	TypMathFunction    = 4
+	TypSubOperation    = 5
+	TypTerm            = 6
+	TypComplexFunction = 7
 
-	RankNone          = 0
-	RankAppend        = 1
-	RankAddSub        = 2
-	RankMul           = 3
-	RankPow           = 4
-	RankFunc          = 5
-	RankSubOpperation = 6
-	RankTerm          = 7
+	RankNone            = 0
+	RankAppend          = 1
+	RankAddSub          = 2
+	RankMul             = 3
+	RankPow             = 4
+	RankMathFunction    = 5
+	RankSubOpperation   = 6
+	RankTerm            = 7
+	RankComplexFunction = 9
 )
 
 type Node struct {
@@ -115,10 +117,14 @@ func (t *Node) copy() INode {
 	}
 	return copy
 }
-func (t *Node) solve() {
+func (t *Node) solve() bool {
+	solved := false
 	for _, child := range t.childs {
-		child.solve()
+		if child.solve() {
+			solved = true
+		}
 	}
+	return solved
 }
 func (t *Node) sort() bool {
 	sorted := false

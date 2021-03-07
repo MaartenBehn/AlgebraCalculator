@@ -1,7 +1,6 @@
 package V3
 
 import (
-	"log"
 	"strconv"
 	"strings"
 	"unicode"
@@ -33,12 +32,9 @@ func removeEmptiStrings(strings []string) []string {
 	return strings
 }
 
-func getVector(part string) *Vector {
+func getVector(part string) (*Vector, error) {
 	number, err := strconv.ParseFloat(part, 64)
-	if err != nil {
-		log.Panic("Could not parse number!")
-	}
-	return NewVector([]float64{number})
+	return NewVector([]float64{number}), err
 }
 
 func getInt(rune uint8) int {

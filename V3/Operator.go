@@ -7,31 +7,30 @@ import (
 )
 
 var mathOperators = []*Operator{
-	NewOperator(",", RankAppend, appandVector, simpNone),
-	NewOperator("+", RankAddSub, add, simpAdd),
-	NewOperator("-", RankAddSub, sub, simpNone),
-	NewOperator("*", RankMul, mul, simpNone),
-	NewOperator("/", RankMul, div, simpNone),
-	NewOperator("pow", RankPow, pow, simpNone),
-	NewOperator("dot", RankFunc, dot, simpNone),
+	NewOperator(",", RankAppend, appandVector),
+	NewOperator("+", RankAddSub, add),
+	NewOperator("-", RankAddSub, sub),
+	NewOperator("*", RankMul, mul),
+	NewOperator("/", RankMul, div),
+	NewOperator("pow", RankPow, pow),
+	NewOperator("dot", RankMathFunction, dot),
+	NewOperator("dist", RankMathFunction, dist),
 }
 
 type Operator struct {
 	*NamedNode
-	solveFunction    func(*Vector, *Vector) *Vector
-	simplifyFunction func(INode) INode
+	solveFunction func(*Vector, *Vector) *Vector
 }
 
-func NewOperator(name string, rank int, solveFunction func(*Vector, *Vector) *Vector, simplifyFunction func(INode) INode) *Operator {
+func NewOperator(name string, rank int, solveFunction func(*Vector, *Vector) *Vector) *Operator {
 	return &Operator{
-		NamedNode:        NewNamedNode(NewNode(TypOpperator, rank, 2), name),
-		solveFunction:    solveFunction,
-		simplifyFunction: simplifyFunction,
+		NamedNode:     NewNamedNode(NewNode(TypOpperator, rank, 2), name),
+		solveFunction: solveFunction,
 	}
 }
 
 func (o *Operator) copy() INode {
-	copy := NewOperator(o.name, o.rank, o.solveFunction, o.simplifyFunction)
+	copy := NewOperator(o.name, o.rank, o.solveFunction)
 	copy.childs = make([]INode, len(o.childs))
 
 	for i, child := range o.childs {
@@ -41,14 +40,16 @@ func (o *Operator) copy() INode {
 	}
 	return copy
 }
-func (o *Operator) solve() {
+func (o *Operator) solve() bool {
 	o.Node.solve()
 
 	if o.childs[0].getType() == TypVector && o.childs[1].getType() == TypVector {
 		result := o.solveFunction(o.childs[0].(*Vector), o.childs[1].(*Vector))
 		replaceNode(o, result)
 		result.childs = nil
+		return true
 	}
+	return false
 }
 func (o *Operator) sort() bool {
 	sorted := o.Node.sort()
@@ -56,7 +57,9 @@ func (o *Operator) sort() bool {
 	child0 := o.childs[0]
 	child1 := o.childs[1]
 
-	if child0.getType() != TypOpperator && child1.getType() != TypOpperator && (o.name == "+" || o.name == "*") {
+	if (o.name == "+" || o.name == "*") &&
+		(child0.getType() != TypOpperator || child0.(INamedNode).getName() != o.name) &&
+		(child1.getType() != TypOpperator || child1.(INamedNode).getName() != o.name) {
 
 		if child0.getDeepDefiner(false) > child1.getDeepDefiner(false) {
 			o.childs[1] = child0
@@ -157,10 +160,12 @@ func dot(x *Vector, y *Vector) *Vector {
 
 	return result
 }
-
-func simpAdd(node INode) INode {
-	return node
-}
-func simpNone(node INode) INode {
-	return node
+func dist(x *Vector, y *Vector) *Vector {
+	return NewVector([]float64{
+		math.Abs(
+			magnitude([]*Vector{
+				sub(x, y),
+			}).values[0],
+		),
+	})
 }

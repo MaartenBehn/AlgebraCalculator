@@ -1,1 +1,32 @@
-a = 2 + 5
+A t = -3 , -3 , 0
+B = 3 , -3 , 0
+C = 3 , 3 , 0
+D = -3 , 3 , 0
+S = 0 , 0 , 9
+E x = 3 * x . 1 + 4 * x . 2 - 21
+
+g1 t = A + t * ( S - A )
+eg1 t = E g1 t
+eg1_ t = removeSub eg1
+t1 = gauss eg1_
+S1 = g1 t1
+
+g2 t = B + t * ( S - B )
+eg2 t = E g2 t
+eg2_ t = removeSub eg2
+t2 = gauss eg2_
+S2 = g2 t2
+
+g3 t = C + t * ( S - C )
+eg3 t = E g3 t
+eg3_ t = removeSub eg3
+t3 = gauss eg3_
+S3 = g3 t3
+
+g4 t = D + t * ( S - D )
+eg4 t = E g4 t
+eg4_ t = removeSub eg4
+t4 = gauss eg4_
+S4 = g4 t4
+
+Area = S1 dist S2 * ( S1 dist S2 + ( S3 dist S4 - S1 dist S2 ) / 2 )

@@ -12,6 +12,7 @@ var mathFunctions = []*MathFunction{
 	NewMathFunction("sin", sin, 1),
 	NewMathFunction("cos", cos, 1),
 	NewMathFunction("tan", tan, 1),
+	NewMathFunction("len", magnitude, 1),
 }
 
 type MathFunction struct {
@@ -21,7 +22,7 @@ type MathFunction struct {
 
 func NewMathFunction(name string, function func([]*Vector) *Vector, attributeAmount int) *MathFunction {
 	return &MathFunction{
-		NamedNode: NewNamedNode(NewNode(TypFunction, RankFunc, attributeAmount), name),
+		NamedNode: NewNamedNode(NewNode(TypMathFunction, RankMathFunction, attributeAmount), name),
 		function:  function,
 	}
 }
@@ -37,7 +38,7 @@ func (f *MathFunction) copy() INode {
 	}
 	return copy
 }
-func (f *MathFunction) solve() {
+func (f *MathFunction) solve() bool {
 	f.Node.solve()
 
 	var vectors []*Vector
@@ -52,7 +53,9 @@ func (f *MathFunction) solve() {
 		result := f.function(vectors)
 		replaceNode(f, result)
 		result.childs = nil
+		return true
 	}
+	return false
 }
 func (f *MathFunction) print() {
 	fmt.Print(f.name)
@@ -92,4 +95,12 @@ func cos(vectors []*Vector) *Vector {
 }
 func tan(vectors []*Vector) *Vector {
 	return genericOpperation1V(vectors[0], math.Tan)
+}
+func magnitude(vectors []*Vector) *Vector {
+	var sum float64
+	for _, value := range vectors[0].values {
+		sum += math.Pow(value, 2)
+	}
+	sum = math.Sqrt(sum)
+	return NewVector([]float64{sum})
 }

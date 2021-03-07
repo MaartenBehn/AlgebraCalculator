@@ -56,4 +56,10 @@ func setUpNamedNodeSlice() {
 		solvableTermNodes = append(solvableTermNodes, x)
 	}
 
+	for _, x := range termFunctions {
+		solvableTermNodes = append(solvableTermNodes, x)
+	}
+
+	solvableTermNodes = append(solvableTermNodes, NewSubOpperaton())
+
 }
