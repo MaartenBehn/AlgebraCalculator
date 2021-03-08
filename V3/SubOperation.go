@@ -69,8 +69,9 @@ func (s *SubOpperation) solveReplace(node INode) {
 		configuration := s.childs[1].copy()
 
 		insertNode(node, subOperation)
-		puschChild(node, subOperation)
-		puschChild(configuration, subOperation)
+		subOperation.setChilds([]INode{node, configuration})
+		node.setParent(subOperation)
+		configuration.setParent(subOperation)
 	}
 }
 

@@ -14,7 +14,7 @@ type Vector struct {
 
 func NewVector(values []float64) *Vector {
 	return &Vector{
-		Node:   NewNode(TypVector, RankNone, 0),
+		Node:   NewNode(TypVector, RankNotSolvable, 0),
 		values: values,
 		len:    len(values),
 	}

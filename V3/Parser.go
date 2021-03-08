@@ -5,11 +5,20 @@ import (
 )
 
 type ParseData struct {
-	root     INode
-	current  INode
-	braceEnd INode
-	found    bool
-	err      error
+	root      INode
+	current   INode
+	braceEnd  INode
+	found     bool
+	err       error
+	variables []*Variable
+	terms     []INode
+}
+
+var termParseFunc = []func(part string, data *ParseData){
+	tryParseSolvableNodes,
+	tryParseVariables,
+	tryParseTerm,
+	tryParseNumber,
 }
 
 func parseTerm(text string, terms []INode) (*Term, error) {
@@ -27,37 +36,23 @@ func parseTerm(text string, terms []INode) (*Term, error) {
 	}
 	parts2 := removeEmptiStrings(splitAny(parts[1], " <>"))
 
-	parseData := &ParseData{
-		root: NewNode(TypNone, RankNone, 0),
-	}
-	parseData.current = parseData.root
-	for _, part := range parts2 {
-		tryParseBracket(part, parseData)
-		tryParseSolvableNodes(part, parseData)
-		tryParseVariables(part, variables, parseData)
-		tryParseTerm(part, terms, parseData)
-		tryParseNumber(part, parseData)
-
-		if !parseData.found {
-			parseData.err = NewError(ErrorTypParsing, ErrorCriticalLevelPartial, "Expression part "+part+" could not be parsed!")
-		}
-
-		if handelError(parseData.err) {
-			return nil, NewError(ErrorTypParsing, ErrorCriticalLevelPartial, "Term could not be parsed!")
-		}
-	}
-
 	term := NewTerm(parts1[0], variables)
-	term.root = parseData.root
+	term.root = NewNode(TypRoot, RankRoot, 1)
 
-	if term.root.getType() != TypNone {
-		root := NewNode(TypNone, RankNone, 0)
-		term.root.setParent(root)
-		root.addChild(term.root, true)
-		term.root = root
+	root, err, _ := parseRoot(parts2, termParseFunc, variables, terms)
+	if handelError(err) {
+		return &Term{}, NewError(ErrorTypParsing, ErrorCriticalLevelPartial, "Term could not be parsed!")
 	}
+	term.root.setChilds([]INode{root})
+	root.setParent(term.root)
 
 	return term, nil
+}
+
+var simpRuleParseFunc = []func(part string, data *ParseData){
+	tryParseRuleSymbols,
+	tryParseSolvableNodes,
+	tryParseNumber,
 }
 
 func parseSimpRule(text string) (SimpRule, error) {
@@ -68,7 +63,7 @@ func parseSimpRule(text string) (SimpRule, error) {
 	}
 
 	parts1 := strings.Split(parts[0], " ")
-	root1, err := parseSimpRuleRoot(parts1)
+	root1, err, _ := parseRoot(parts1, simpRuleParseFunc, nil, nil)
 	if handelError(err) {
 		return SimpRule{}, NewError(ErrorTypParsing, ErrorCriticalLevelPartial, "Rule could not be parsed!")
 	}
@@ -79,7 +74,7 @@ func parseSimpRule(text string) (SimpRule, error) {
 	}
 
 	parts2 := strings.Split(parts[1], " ")
-	root2, err := parseSimpRuleRoot(parts2)
+	root2, err, _ := parseRoot(parts2, simpRuleParseFunc, nil, nil)
 	if handelError(err) {
 		return SimpRule{}, NewError(ErrorTypParsing, ErrorCriticalLevelPartial, "Rule could not be parsed!")
 	}
@@ -95,48 +90,7 @@ func parseSimpRule(text string) (SimpRule, error) {
 		replace: root2,
 	}, nil
 }
-func parseSimpRuleRoot(parts []string) (INode, error) {
-	parts = removeEmptiStrings(parts)
-	parseData := &ParseData{
-		root: NewNode(TypNone, RankNone, 0),
-	}
-	parseData.current = parseData.root
-	for _, part := range parts {
-		tryParseBracket(part, parseData)
-		tryParseRuleSymbols(part, parseData)
-		tryParseSolvableNodes(part, parseData)
-		tryParseNumber(part, parseData)
 
-		if !parseData.found {
-			parseData.err = NewError(ErrorTypParsing, ErrorCriticalLevelPartial, "Expression part "+part+" could not be parsed!")
-		}
-
-		if parseData.err != nil {
-			return nil, parseData.err
-		}
-	}
-
-	if parseData.root.getType() == TypNone && len(parseData.root.getChilds()) == 1 {
-		parseData.root = parseData.root.getChilds()[0]
-	}
-
-	return parseData.root, nil
-}
-
-func tryParseBracket(part string, data *ParseData) {
-	if part == "(" {
-		data.braceEnd = data.current
-
-		data.err = puschChild(NewNode(TypNone, RankNone, 0), data.current)
-		data.current = data.current.getChilds()[len(data.current.getChilds())-1]
-		data.found = true
-	}
-
-	if part == ")" {
-		data.current = data.braceEnd
-		data.found = true
-	}
-}
 func tryParseRuleSymbols(part string, data *ParseData) {
 	if strings.Contains(part, "_") {
 
@@ -165,7 +119,7 @@ func tryParseRuleSymbols(part string, data *ParseData) {
 		allIds := len(part) >= (6+invertedOffset) && part[5+invertedOffset] == 'i'
 
 		simpNode := NewSimpNode(typ, id, inverted, allIds)
-		data.err = puschChild(simpNode, data.current)
+		addParsedNode(simpNode, data)
 		data.found = true
 	}
 }
@@ -173,53 +127,28 @@ func tryParseSolvableNodes(part string, data *ParseData) {
 	for _, solvableTermNode := range solvableTermNodes {
 		if part == solvableTermNode.getName() {
 			termNode := solvableTermNode.copy()
-			rank := termNode.getRank()
 
-			parentNode := spotAcordingToRank(data.current, rank)
-
-			if parentNode.getType() == TypNone {
-				if data.braceEnd != nil && parentNode == data.braceEnd {
-
-					childs := parentNode.getChilds()
-					termNode.setParent(parentNode)
-					parentNode.setChilds([]INode{termNode})
-					for _, child := range childs {
-						child.setParent(termNode)
-					}
-					termNode.setChilds(childs)
-
-					data.current = termNode
-				} else {
-					replaceNode(parentNode, termNode)
-					data.current = termNode
-
-					if data.current.getParent() == nil {
-						data.root = data.current
-					}
-				}
-
-			} else {
-				data.err = puschChild(termNode, parentNode)
-				data.current = termNode
-			}
+			termNode = addParsedNode(termNode, data)
+			data.current = termNode
 			data.found = true
 			break
 		}
 	}
 }
-func tryParseVariables(part string, variables []*Variable, data *ParseData) {
-	for _, variable := range variables {
+func tryParseVariables(part string, data *ParseData) {
+	for _, variable := range data.variables {
 		if variable.getName() == part {
-			data.err = puschChild(variable.copy(), data.current)
+			addParsedNode(variable.copy(), data)
 			data.found = true
 		}
 	}
 }
-func tryParseTerm(part string, terms []INode, data *ParseData) {
-	for _, testTerm := range terms {
+func tryParseTerm(part string, data *ParseData) {
+	for _, testTerm := range data.terms {
 		if part == testTerm.(*Term).name {
 			copy := testTerm.copy()
-			data.err = puschChild(copy, data.current)
+			copy.setBracketRoot(true)
+			copy = addParsedNode(copy, data)
 			data.current = copy
 			data.found = true
 		}
@@ -229,7 +158,7 @@ func tryParseNumber(part string, data *ParseData) {
 	if isNumber(part) {
 		var vector *Vector
 		vector, data.err = getVector(part)
-		data.err = puschChild(vector, data.current)
+		addParsedNode(vector, data)
 		data.found = true
 	}
 
@@ -242,47 +171,96 @@ func tryParseNumber(part string, data *ParseData) {
 		if isNumber(parts2[0]) {
 			var vector *Vector
 			vector, data.err = getVector(parts2[1])
-			data.err = puschChild(vector, data.current)
+			addParsedNode(vector, data)
 			data.found = true
 		}
 	}
 }
 
-func spotAcordingToRank(current INode, rank int) INode {
-	if current.getRank() >= rank {
-		partent := current.getParent()
-
-		if partent == nil {
-			partent = NewNode(0, 0, 0)
-			current.setParent(partent)
-			partent.setChilds([]INode{current})
-		}
-
-		if partent.getRank() <= current.getRank() {
-			return spotAcordingToRank(partent, rank)
-		}
-
-		return current
-	} else {
-		return current
+func parseRoot(parts []string, funcs []func(part string, data *ParseData), varibles []*Variable, terms []INode) (INode, error, int) {
+	parts = removeEmptiStrings(parts)
+	data := &ParseData{
+		root:      NewNode(TypNone, RankNone, 0),
+		variables: varibles,
+		terms:     terms,
 	}
+	data.current = data.root
+
+	var i int
+	for i = 0; i < len(parts); i++ {
+		part := parts[i]
+		data.found = false
+		if part == "(" {
+			subRoot, err, index := parseRoot(parts[i+1:], funcs, varibles, terms)
+			data.err = err
+			subRoot.setBracketRoot(true)
+			data.current.setChilds(append(data.current.getChilds(), subRoot))
+			subRoot.setParent(data.current)
+
+			i += index + 1
+			data.found = true
+		}
+
+		if part == ")" {
+			break
+		}
+
+		for _, function := range funcs {
+			function(part, data)
+		}
+
+		if !data.found {
+			data.err = NewError(ErrorTypParsing, ErrorCriticalLevelPartial, "Expression part "+part+" could not be parsed!")
+		}
+
+		if data.err != nil {
+			return nil, data.err, 0
+		}
+	}
+
+	if data.root.getType() == TypNone && len(data.root.getChilds()) == 1 {
+		data.root = data.root.getChilds()[0]
+	}
+
+	return data.root, nil, i
 }
-func puschChild(child INode, inNode INode) error {
 
-	childs := inNode.getChilds()
-	if inNode.getType() != 0 && inNode.getMaxChilds() == 0 {
-		return NewError(ErrorTypParsing, ErrorCriticalLevelPartial, "Can't push Child becuase maxChilds is zero!")
-	} else if inNode.getType() != 0 && len(childs) > 0 && len(childs) >= inNode.getMaxChilds() {
-		mostRightChild := childs[len(childs)-1]
-		err := puschChild(mostRightChild, child)
-		if err != nil {
-			return err
+func addParsedNode(node INode, data *ParseData) INode {
+	current := data.current
+
+	if current.getType() == TypNone {
+
+		replaceNode(current, node)
+
+	} else if node.getRank() > current.getRank() || node.getBracketRoot() {
+
+		childs := current.getChilds()
+		if len(childs) < current.getMaxChilds() {
+			childs = append(childs, node)
+		} else {
+			child := childs[len(childs)-1]
+			childs[len(childs)-1] = node
+			node.setChilds([]INode{child})
+			child.setParent(node)
 		}
-		childs[len(childs)-1] = child
-		inNode.setChilds(childs)
-	} else {
-		inNode.addChild(child, true)
+		current.setChilds(childs)
+		node.setParent(current)
+
+	} else if node.getRank() <= current.getRank() {
+
+		if current.getParent() == nil {
+			current.setParent(node)
+			node.setChilds([]INode{current})
+		} else {
+			data.current = current.getParent()
+			node = addParsedNode(node, data)
+		}
 	}
-	child.setParent(inNode)
-	return nil
+
+	if node.getParent() == nil {
+		data.root = node
+		data.current = node
+	}
+
+	return node
 }

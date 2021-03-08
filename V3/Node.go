@@ -8,7 +8,6 @@ import (
 type INode interface {
 	setParent(partent INode)
 	getParent() INode
-	addChild(child INode, onRightSide bool) INode
 	setChilds(childs []INode)
 	getChilds() []INode
 	getMaxChilds() int
@@ -17,6 +16,8 @@ type INode interface {
 	getRank() int
 	getDefiner(vaules bool) string
 	getDeepDefiner(vaules bool) string
+	setBracketRoot(is bool)
+	getBracketRoot() bool
 
 	copy() INode
 	solve() bool
@@ -27,32 +28,36 @@ type INode interface {
 
 const (
 	TypNone            = 0
-	TypVector          = 1
-	TypVariable        = 2
-	TypOpperator       = 3
-	TypMathFunction    = 4
-	TypSubOperation    = 5
-	TypTerm            = 6
-	TypComplexFunction = 7
+	TypRoot            = 1
+	TypVector          = 2
+	TypVariable        = 3
+	TypOpperator       = 4
+	TypMathFunction    = 5
+	TypSubOperation    = 6
+	TypTerm            = 7
+	TypComplexFunction = 8
 
 	RankNone            = 0
-	RankAppend          = 1
-	RankAddSub          = 2
-	RankMul             = 3
-	RankPow             = 4
-	RankMathFunction    = 5
-	RankSubOpperation   = 6
-	RankTerm            = 7
+	RankRoot            = 1
+	RankAppend          = 2
+	RankAddSub          = 3
+	RankMul             = 4
+	RankPow             = 5
+	RankMathFunction    = 6
+	RankSubOpperation   = 7
+	RankTerm            = 8
 	RankComplexFunction = 9
+	RankNotSolvable     = 100
 )
 
 type Node struct {
-	parent    INode
-	childs    []INode
-	typeId    int
-	rank      int
-	maxChilds int
-	definer   string
+	parent      INode
+	childs      []INode
+	typeId      int
+	rank        int
+	maxChilds   int
+	definer     string
+	bracketRoot bool
 }
 
 func NewNode(typeId int, rank int, maxChilds int) *Node {
@@ -70,14 +75,6 @@ func (t *Node) setParent(partent INode) {
 func (t *Node) getParent() INode {
 	return t.parent
 }
-func (t *Node) addChild(child INode, onRightSide bool) INode {
-	if onRightSide {
-		t.childs = append(t.childs, child)
-	} else {
-		t.childs = append([]INode{child}, t.childs...)
-	}
-	return child
-}
 func (t *Node) setChilds(childs []INode) {
 	t.childs = childs
 }
@@ -88,22 +85,28 @@ func (t *Node) getMaxChilds() int {
 	return t.maxChilds
 }
 
-func (t Node) getType() int {
+func (t *Node) getType() int {
 	return t.typeId
 }
-func (t Node) getRank() int {
+func (t *Node) getRank() int {
 	return t.rank
 }
-func (t Node) getDefiner(vaules bool) string {
+func (t *Node) getDefiner(vaules bool) string {
 	return t.definer
 }
-func (t Node) getDeepDefiner(vaules bool) string {
+func (t *Node) getDeepDefiner(vaules bool) string {
 	var deepDefiner string
 	for _, child := range t.childs {
 		deepDefiner += child.getDeepDefiner(vaules)
 	}
 	deepDefiner += t.definer
 	return deepDefiner
+}
+func (t *Node) setBracketRoot(is bool) {
+	t.bracketRoot = is
+}
+func (t *Node) getBracketRoot() bool {
+	return t.bracketRoot
 }
 
 func (t *Node) copy() INode {
@@ -207,6 +210,24 @@ func insertNode(old INode, new INode) {
 		}
 		new.getParent().setChilds(childs)
 	}
+}
+
+func pushNode(node INode, newNode INode) {
+	if node.getType() == TypNone {
+		replaceNode(node, newNode)
+		return
+	}
+
+	childs := node.getChilds()
+	if len(childs) >= node.getMaxChilds() {
+		mostLeftNode := childs[0]
+		pushNode(newNode, mostLeftNode)
+		childs[0] = newNode
+	} else {
+		childs = append(childs, newNode)
+	}
+	node.setChilds(childs)
+	newNode.setParent(node)
 }
 
 func deepEqual(node1 INode, node2 INode) bool {

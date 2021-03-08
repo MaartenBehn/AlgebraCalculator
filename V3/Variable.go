@@ -6,7 +6,7 @@ type Variable struct {
 
 func NewVariable(name string) *Variable {
 	return &Variable{
-		NamedNode: NewNamedNode(NewNode(TypVariable, RankNone, 0), name),
+		NamedNode: NewNamedNode(NewNode(TypVariable, RankNotSolvable, 0), name),
 	}
 }
 

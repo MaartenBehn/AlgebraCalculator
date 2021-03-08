@@ -18,7 +18,7 @@ type SimpNode struct {
 
 func NewSimpNode(typeId int, id int, inverted bool, allIds bool) *SimpNode {
 	node := &SimpNode{
-		Node:     NewNode(typeId, 0, 0),
+		Node:     NewNode(typeId, RankNotSolvable, 0),
 		id:       id,
 		inverted: inverted,
 		allIds:   allIds,
