@@ -1,0 +1,1 @@
+D:\dev\Go\bin\gomobile install D:\dev\Go\src\AlgebraCalculator\app\android\AlgebraCalculator
