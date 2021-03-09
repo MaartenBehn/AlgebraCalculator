@@ -1,6 +1,7 @@
 package main
 
 import (
+	calculator "AlgebraCalculator/V3"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 )
@@ -10,9 +11,17 @@ var editor *Editor
 var log *Log
 
 func main() {
+
+	var ruleStrings []string
+	ruleStrings = append(ruleStrings, string(resourceSimpRulesExpandTxt.Content()))
+	ruleStrings = append(ruleStrings, string(resourceSimpRulesSumUpTxt.Content()))
+	calculator.Init(ruleStrings)
+
 	a := app.New()
 
 	window = a.NewWindow("AlgebraCalculator")
+	window.Resize(fyne.NewSize(1600, 900))
+
 	/*
 		window.SetMainMenu(&fyne.MainMenu{
 			Items: []*fyne.Menu{
@@ -40,9 +49,5 @@ func saveFile() {
 }
 
 func loadFile() {
-
-}
-
-func onRunButton() {
 
 }

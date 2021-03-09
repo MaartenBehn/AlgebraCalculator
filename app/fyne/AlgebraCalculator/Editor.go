@@ -1,6 +1,7 @@
 package main
 
 import (
+	calculator "AlgebraCalculator/V3"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
@@ -17,7 +18,9 @@ func NewEditor() *Editor {
 
 	header := container.NewBorder(nil, nil, nil,
 		container.NewHBox(
-			widget.NewButton("Run", onRunButton),
+			widget.NewButton("Run", func() {
+				e.onRun()
+			}),
 			widget.NewButton("Log", func() {
 				changeContent(log.content)
 			}),
@@ -46,4 +49,24 @@ func (e *Editor) addItem() {
 func (e *Editor) removeItem(editorItem EditorItem) {
 	e.list.Remove(editorItem.content)
 	e.items = append(e.items[:editorItem.index], e.items[editorItem.index+1:]...)
+}
+
+func (e *Editor) onRun() {
+	results, logged := calculator.Run(e.getAllTexts())
+
+	for i, item := range e.items {
+		if i < len(results) {
+			item.setResult(results[i])
+		}
+	}
+
+	log.setText(logged)
+}
+
+func (e *Editor) getAllTexts() []string {
+	var texts []string
+	for _, item := range e.items {
+		texts = append(texts, item.getText())
+	}
+	return texts
 }

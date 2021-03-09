@@ -1,34 +1,34 @@
 package V3
 
 import (
+	"AlgebraCalculator/log"
 	"fmt"
-	"log"
 	"math"
 )
 
-type Vector struct {
-	*Node
+type vector struct {
+	*node
 	values []float64
 	len    int
 }
 
-func NewVector(values []float64) *Vector {
-	return &Vector{
-		Node:   NewNode(TypVector, RankNotSolvable, 0),
+func newVector(values []float64) *vector {
+	return &vector{
+		node:   newNode(typVector, rankNotSolvable, 0),
 		values: values,
 		len:    len(values),
 	}
 }
 
 // vaules ein bool
-func (v *Vector) getDefiner(vaules bool) string {
+func (v *vector) getDefiner(vaules bool) string {
 	if vaules {
 		return v.definer + v.toString()
 	}
 	return v.definer
 }
 
-func (v *Vector) getDeepDefiner(vaules bool) string {
+func (v *vector) getDeepDefiner(vaules bool) string {
 	var deepDefiner string
 	for _, child := range v.childs {
 		deepDefiner += child.getDeepDefiner(vaules)
@@ -37,9 +37,9 @@ func (v *Vector) getDeepDefiner(vaules bool) string {
 	return deepDefiner
 }
 
-func (v *Vector) copy() INode {
-	copy := NewVector(v.values)
-	copy.childs = make([]INode, len(v.childs))
+func (v *vector) copy() iNode {
+	copy := newVector(v.values)
+	copy.childs = make([]iNode, len(v.childs))
 
 	for i, child := range v.childs {
 		childCopy := child.copy()
@@ -48,24 +48,24 @@ func (v *Vector) copy() INode {
 	}
 	return copy
 }
-func (v Vector) print() {
-	v.Node.print()
-	fmt.Print(v.toString())
+func (v vector) print() {
+	v.node.print()
+	log.Print(v.toString())
 }
-func (v Vector) printTree(indentation int) {
+func (v vector) printTree(indentation int) {
 	printIndentation(indentation)
-	fmt.Print(v.toString())
-	v.Node.printTree(indentation)
+	log.Print(v.toString())
+	v.node.printTree(indentation)
 }
 
-func (v *Vector) append(v2 *Vector) {
+func (v *vector) append(v2 *vector) {
 	v.values = append(v.values, v2.values...)
 	v.len = len(v.values)
 }
-func (v *Vector) updateLen() {
+func (v *vector) updateLen() {
 	v.len = len(v.values)
 }
-func (v *Vector) toString() string {
+func (v *vector) toString() string {
 	var text string
 	if v.len > 1 {
 		text += "( "
@@ -90,8 +90,8 @@ func (v *Vector) toString() string {
 	return text
 }
 
-func genericOpperation1V(x *Vector, opperation func(float64) float64) *Vector {
-	result := NewVector(nil)
+func genericOpperation1V(x *vector, opperation func(float64) float64) *vector {
+	result := newVector(nil)
 	result.values = make([]float64, x.len)
 	for i := 0; i < x.len; i++ {
 		result.values[i] = opperation(x.values[i])
@@ -99,8 +99,8 @@ func genericOpperation1V(x *Vector, opperation func(float64) float64) *Vector {
 	result.updateLen()
 	return result
 }
-func genericOpperation2VScalar(x *Vector, y *Vector, opperation func(float64, float64) float64) *Vector {
-	result := NewVector(nil)
+func genericOpperation2VScalar(x *vector, y *vector, opperation func(float64, float64) float64) *vector {
+	result := newVector(nil)
 
 	if x.len == y.len {
 
@@ -124,7 +124,7 @@ func genericOpperation2VScalar(x *Vector, y *Vector, opperation func(float64, fl
 		}
 
 	} else {
-		log.Panicf("Invalid vector Dimentions!")
+		handelError(newError(errorTypSolving, errorCriticalLevelNon, "Invalid vector Dimentions!"))
 	}
 
 	result.updateLen()

@@ -1,34 +1,38 @@
 package V3
 
 import (
-	"fmt"
-	"io/ioutil"
+	"AlgebraCalculator/log"
 	"strings"
 )
 
-func Run() {
-	setUpNamedNodeSlice()
+var rules [][]simpRule
 
-	var rules [][]SimpRule
-	rules = append(rules, readRuleList("simpRulesExpand.txt"))
-	rules = append(rules, readRuleList("simpRulesSumUp.txt"))
+func Init(ruleStrings []string) {
+	log.InitLog()
+	initNamedNodeSlice()
 
-	terms := perfomTermList("input.txt", rules)
-
-	for _, term := range terms {
-		fmt.Print("\n")
-		term.(*Term).printTerm()
+	for _, ruleString := range ruleStrings {
+		rules = append(rules, parseRuleString(ruleString))
 	}
 }
 
-func readRuleList(path string) []SimpRule {
-	var simpRules []SimpRule
+func Run(termsTexts []string) (results []string, logged string) {
 
-	buf, err := ioutil.ReadFile(path)
-	handelError(err)
+	termNodes := calculateTermList(termsTexts)
+	logged = log.GetLog()
 
-	content := string(buf)
-	lines := splitAny(content, "\n\r")
+	for _, termNode := range termNodes {
+		termNode.(*term).printTerm()
+		results = append(results, log.GetLog())
+	}
+
+	return results, logged
+}
+
+func parseRuleString(ruleFile string) []simpRule {
+	var simpRules []simpRule
+
+	lines := removeEmptiStrings(splitAny(ruleFile, "\n\r"))
 
 	for i, line := range lines {
 		if !strings.Contains(line, "=") || strings.Contains(line, "//") {
@@ -46,21 +50,15 @@ func readRuleList(path string) []SimpRule {
 	return simpRules
 }
 
-func perfomTermList(path string, rules [][]SimpRule) []INode {
+func calculateTermList(lines []string) []iNode {
 
-	buf, err := ioutil.ReadFile(path)
-	handelError(err)
-
-	content := string(buf)
-	lines := strings.Split(content, "\r\n")
-
-	var terms []INode
+	var terms []iNode
 	for _, line := range lines {
 		if !strings.Contains(line, "=") || strings.Contains(line, "//") {
 			continue
 		}
 
-		var term INode
+		var term iNode
 		term, err := parseTerm(line, terms)
 		if handelError(err) {
 			continue
@@ -72,15 +70,17 @@ func perfomTermList(path string, rules [][]SimpRule) []INode {
 	return terms
 }
 
-func solveTerm(term INode, rules [][]SimpRule) INode {
-	fmt.Print("\n")
-	term.(*Term).printTerm()
-	fmt.Print("\n")
-	root := term.(*Term).root
+func solveTerm(node iNode, rules [][]simpRule) iNode {
+	term := node.(*term)
 
-	fmt.Print("Parsed:")
+	log.Print("\n")
+	term.printTerm()
+	log.Print("\n")
+	root := term.root
+
+	log.Print("Parsed:")
 	root.printTree(0)
-	fmt.Print("\n")
+	log.Print("\n")
 	for _, ruleList := range rules {
 		if ruleList == nil {
 			continue
@@ -95,9 +95,9 @@ func solveTerm(term INode, rules [][]SimpRule) INode {
 				run2 = root.sort()
 
 				if run2 {
-					fmt.Print("Sort:")
+					log.Print("Sort:")
 					root.printTree(0)
-					fmt.Print("\n")
+					log.Print("\n")
 
 					run = true
 				}
@@ -108,9 +108,9 @@ func solveTerm(term INode, rules [][]SimpRule) INode {
 				run2 = root.solve()
 
 				if run2 {
-					fmt.Print("Solve:")
+					log.Print("Solve:")
 					root.printTree(0)
-					fmt.Print("\n")
+					log.Print("\n")
 
 					run = true
 				}
@@ -122,10 +122,10 @@ func solveTerm(term INode, rules [][]SimpRule) INode {
 					run2 = rule.applyRule(root, rule.search)
 
 					if run2 {
-						fmt.Print("Simpify: ")
-						fmt.Printf("%s", rule.base)
+						log.Print("Simpify: ")
+						log.Printf("%s", rule.base)
 						root.printTree(0)
-						fmt.Print("\n")
+						log.Print("\n")
 
 						root.solve()
 
@@ -136,11 +136,11 @@ func solveTerm(term INode, rules [][]SimpRule) INode {
 			}
 		}
 	}
-	term.(*Term).root = root
+	term.root = root
 
-	fmt.Print(" => ")
-	term.(*Term).printTerm()
-	fmt.Print("\n")
+	log.Print(" => ")
+	term.printTerm()
+	log.Print("\n")
 
 	return term
 }

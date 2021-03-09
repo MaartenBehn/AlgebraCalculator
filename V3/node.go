@@ -1,15 +1,15 @@
 package V3
 
 import (
-	"fmt"
+	"AlgebraCalculator/log"
 	"strconv"
 )
 
-type INode interface {
-	setParent(partent INode)
-	getParent() INode
-	setChilds(childs []INode)
-	getChilds() []INode
+type iNode interface {
+	setParent(partent iNode)
+	getParent() iNode
+	setChilds(childs []iNode)
+	getChilds() []iNode
 	getMaxChilds() int
 
 	getType() int
@@ -19,7 +19,7 @@ type INode interface {
 	setBracketRoot(is bool)
 	getBracketRoot() bool
 
-	copy() INode
+	copy() iNode
 	solve() bool
 	sort() bool
 	print()
@@ -27,32 +27,32 @@ type INode interface {
 }
 
 const (
-	TypNone            = 0
-	TypRoot            = 1
-	TypVector          = 2
-	TypVariable        = 3
-	TypOpperator       = 4
-	TypMathFunction    = 5
-	TypSubOperation    = 6
-	TypTerm            = 7
-	TypComplexFunction = 8
+	typNone            = 0
+	typRoot            = 1
+	typVector          = 2
+	typVariable        = 3
+	typOpperator       = 4
+	typMathFunction    = 5
+	typSubOperation    = 6
+	typTerm            = 7
+	typComplexFunction = 8
 
-	RankNone            = 0
-	RankRoot            = 1
-	RankAppend          = 2
-	RankAddSub          = 3
-	RankMul             = 4
-	RankPow             = 5
-	RankMathFunction    = 6
-	RankSubOpperation   = 7
-	RankTerm            = 8
-	RankComplexFunction = 9
-	RankNotSolvable     = 100
+	rankNone            = 0
+	rankRoot            = 1
+	rankAppend          = 2
+	rankAddSub          = 3
+	rankMul             = 4
+	rankPow             = 5
+	rankMathFunction    = 6
+	rankSubOpperation   = 7
+	rankTerm            = 8
+	rankComplexFunction = 9
+	rankNotSolvable     = 100
 )
 
-type Node struct {
-	parent      INode
-	childs      []INode
+type node struct {
+	parent      iNode
+	childs      []iNode
 	typeId      int
 	rank        int
 	maxChilds   int
@@ -60,8 +60,8 @@ type Node struct {
 	bracketRoot bool
 }
 
-func NewNode(typeId int, rank int, maxChilds int) *Node {
-	return &Node{
+func newNode(typeId int, rank int, maxChilds int) *node {
+	return &node{
 		typeId:    typeId,
 		rank:      rank,
 		maxChilds: maxChilds,
@@ -69,32 +69,32 @@ func NewNode(typeId int, rank int, maxChilds int) *Node {
 	}
 }
 
-func (t *Node) setParent(partent INode) {
+func (t *node) setParent(partent iNode) {
 	t.parent = partent
 }
-func (t *Node) getParent() INode {
+func (t *node) getParent() iNode {
 	return t.parent
 }
-func (t *Node) setChilds(childs []INode) {
+func (t *node) setChilds(childs []iNode) {
 	t.childs = childs
 }
-func (t *Node) getChilds() []INode {
+func (t *node) getChilds() []iNode {
 	return t.childs
 }
-func (t *Node) getMaxChilds() int {
+func (t *node) getMaxChilds() int {
 	return t.maxChilds
 }
 
-func (t *Node) getType() int {
+func (t *node) getType() int {
 	return t.typeId
 }
-func (t *Node) getRank() int {
+func (t *node) getRank() int {
 	return t.rank
 }
-func (t *Node) getDefiner(vaules bool) string {
+func (t *node) getDefiner(vaules bool) string {
 	return t.definer
 }
-func (t *Node) getDeepDefiner(vaules bool) string {
+func (t *node) getDeepDefiner(vaules bool) string {
 	var deepDefiner string
 	for _, child := range t.childs {
 		deepDefiner += child.getDeepDefiner(vaules)
@@ -102,16 +102,16 @@ func (t *Node) getDeepDefiner(vaules bool) string {
 	deepDefiner += t.definer
 	return deepDefiner
 }
-func (t *Node) setBracketRoot(is bool) {
+func (t *node) setBracketRoot(is bool) {
 	t.bracketRoot = is
 }
-func (t *Node) getBracketRoot() bool {
+func (t *node) getBracketRoot() bool {
 	return t.bracketRoot
 }
 
-func (t *Node) copy() INode {
-	copy := NewNode(t.typeId, t.rank, t.maxChilds)
-	copy.childs = make([]INode, len(t.childs))
+func (t *node) copy() iNode {
+	copy := newNode(t.typeId, t.rank, t.maxChilds)
+	copy.childs = make([]iNode, len(t.childs))
 
 	for i, child := range t.childs {
 		childCopy := child.copy()
@@ -120,7 +120,7 @@ func (t *Node) copy() INode {
 	}
 	return copy
 }
-func (t *Node) solve() bool {
+func (t *node) solve() bool {
 	solved := false
 	for _, child := range t.childs {
 		if child.solve() {
@@ -129,7 +129,7 @@ func (t *Node) solve() bool {
 	}
 	return solved
 }
-func (t *Node) sort() bool {
+func (t *node) sort() bool {
 	sorted := false
 	for _, child := range t.childs {
 		if child.sort() {
@@ -138,17 +138,17 @@ func (t *Node) sort() bool {
 	}
 	return sorted
 }
-func (t *Node) print() {
+func (t *node) print() {
 	if len(t.childs) > 0 {
-		fmt.Print("(")
+		log.Print("(")
 		for _, child := range t.childs {
 			child.print()
 		}
-		fmt.Print(")")
+		log.Print(")")
 	}
 }
-func (t *Node) printTree(indentation int) {
-	fmt.Print("\n")
+func (t *node) printTree(indentation int) {
+	log.Print("\n")
 	indentation++
 	if len(t.childs) > 0 {
 		for _, child := range t.childs {
@@ -160,20 +160,20 @@ func (t *Node) printTree(indentation int) {
 func printIndentation(indentation int) {
 	for i := 0; i < indentation; i++ {
 		if i == indentation-1 {
-			fmt.Print("|> ")
+			log.Print("|> ")
 		} else if i == 0 {
-			fmt.Print("|  ")
+			log.Print("|  ")
 		} else {
-			fmt.Print("   ")
+			log.Print("   ")
 		}
 
 	}
 }
 
 // replaceNode replaces old to new and updates the partent and child pointers to new.
-func replaceNode(old INode, new INode) {
+func replaceNode(old iNode, new iNode) {
 
-	// Copy Node Data to new
+	// Copy node Data to new
 	new.setChilds(old.getChilds())
 	new.setParent(old.getParent())
 
@@ -195,7 +195,7 @@ func replaceNode(old INode, new INode) {
 }
 
 // insertNode replaces old to new but keep the childs of new while conectiong the partent of old.
-func insertNode(old INode, new INode) {
+func insertNode(old iNode, new iNode) {
 
 	// Copy Partent pointer
 	new.setParent(old.getParent())
@@ -212,8 +212,8 @@ func insertNode(old INode, new INode) {
 	}
 }
 
-func pushNode(node INode, newNode INode) {
-	if node.getType() == TypNone {
+func pushNode(node iNode, newNode iNode) {
+	if node.getType() == typNone {
 		replaceNode(node, newNode)
 		return
 	}
@@ -230,6 +230,6 @@ func pushNode(node INode, newNode INode) {
 	newNode.setParent(node)
 }
 
-func deepEqual(node1 INode, node2 INode) bool {
+func deepEqual(node1 iNode, node2 iNode) bool {
 	return node1.getDeepDefiner(true) == node2.getDeepDefiner(true)
 }

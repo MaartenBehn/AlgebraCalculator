@@ -2,7 +2,6 @@ package V3
 
 import (
 	"fmt"
-	"log"
 	"math"
 )
 
@@ -36,14 +35,14 @@ var tc2 = testCase{
 const tolerance = 1e-14
 
 func testGausianElimination() {
-	x, err := GaussPartial(tc2.a, tc2.b)
+	x, err := gaussPartial(tc2.a, tc2.b)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Print(err)
 	}
 	fmt.Println(x)
 }
 
-func GaussPartial(a0 [][]float64, b0 []float64) ([]float64, error) {
+func gaussPartial(a0 [][]float64, b0 []float64) ([]float64, error) {
 	m := len(b0)
 	a := make([][]float64, m)
 	for i, ai := range a0 {
@@ -70,7 +69,7 @@ func GaussPartial(a0 [][]float64, b0 []float64) ([]float64, error) {
 			}
 		}
 		if a[iMax][k] == 0 {
-			return nil, NewError(ErrorTypSolving, ErrorCriticalLevelPartial, "Gaussian Singular")
+			return nil, newError(errorTypSolving, errorCriticalLevelPartial, "Gaussian Singular")
 		}
 		a[k], a[iMax] = a[iMax], a[k]
 		for i := k + 1; i < m; i++ {
