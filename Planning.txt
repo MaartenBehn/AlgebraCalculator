@@ -26,10 +26,6 @@ b : 2, 2
 g<t> : a + t * b
 
 
-
-
-
-
 Number a : term, term, term -> []float --> termPart
 Variable b --> termPart
 Operator + --> termPart
