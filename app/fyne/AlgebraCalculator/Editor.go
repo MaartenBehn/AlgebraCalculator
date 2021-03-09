@@ -1,7 +1,7 @@
 package main
 
 import (
-	calculator "AlgebraCalculator/V3"
+	"AlgebraCalculator"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
@@ -52,7 +52,7 @@ func (e *Editor) removeItem(editorItem EditorItem) {
 }
 
 func (e *Editor) onRun() {
-	results, logged := calculator.Run(e.getAllTexts())
+	results, logged := AlgebraCalculator.Run(e.getAllTexts())
 
 	for i, item := range e.items {
 		if i < len(results) {

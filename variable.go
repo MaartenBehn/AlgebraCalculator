@@ -1,4 +1,4 @@
-package V3
+package AlgebraCalculator
 
 type variable struct {
 	*namedNode

@@ -1,4 +1,4 @@
-package V3
+package AlgebraCalculator
 
 import (
 	"AlgebraCalculator/log"
@@ -9,8 +9,8 @@ import (
 func setUpForTest() {
 
 	var rules []string
-	rules = append(rules, readFile("rules/simpRulesExpand.txt"))
-	rules = append(rules, readFile("rules/simpRulesSumUp.txt"))
+	rules = append(rules, readFile("ruleFiles/simpRulesExpand.txt"))
+	rules = append(rules, readFile("ruleFiles/simpRulesSumUp.txt"))
 
 	Init(rules)
 }

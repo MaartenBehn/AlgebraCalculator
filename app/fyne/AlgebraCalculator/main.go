@@ -1,7 +1,7 @@
 package main
 
 import (
-	calculator "AlgebraCalculator/V3"
+	"AlgebraCalculator"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 )
@@ -15,7 +15,7 @@ func main() {
 	var ruleStrings []string
 	ruleStrings = append(ruleStrings, string(resourceSimpRulesExpandTxt.Content()))
 	ruleStrings = append(ruleStrings, string(resourceSimpRulesSumUpTxt.Content()))
-	calculator.Init(ruleStrings)
+	AlgebraCalculator.Init(ruleStrings)
 
 	a := app.New()
 

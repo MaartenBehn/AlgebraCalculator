@@ -1,4 +1,4 @@
-package V3
+package AlgebraCalculator
 
 import (
 	"math"
