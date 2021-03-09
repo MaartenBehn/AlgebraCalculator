@@ -20,6 +20,7 @@ func NewVector(values []float64) *Vector {
 	}
 }
 
+// vaules ein bool
 func (v *Vector) getDefiner(vaules bool) string {
 	if vaules {
 		return v.definer + v.toString()
