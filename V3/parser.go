@@ -222,6 +222,10 @@ func parseRoot(parts []string, funcs []func(part string, data *parseData), varib
 		data.root = data.root.getChilds()[0]
 	}
 
+	if data.root.getBracketRoot() {
+		data.root.setBracketRoot(false)
+	}
+
 	return data.root, nil, i
 }
 

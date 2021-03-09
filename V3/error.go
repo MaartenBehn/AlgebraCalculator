@@ -1,7 +1,7 @@
 package V3
 
 import (
-	log "github.com/sirupsen/logrus"
+	"AlgebraCalculator/log"
 	"os"
 	"reflect"
 	"strings"
@@ -53,15 +53,15 @@ func handelError(err error) bool {
 	if reflect.TypeOf(err) == reflect.TypeOf(&calculatorError{}) {
 		switch err.(*calculatorError).critical {
 		case errorCriticalLevelNon:
-			log.Print(err)
+			log.Print(err.Error())
 			log.Println(" -> Programm execution was continued.")
 			return false
 		case errorCriticalLevelPartial:
-			log.Print(err)
+			log.Print(err.Error())
 			log.Println(" -> Some parts of the programm where not executed.")
 			return true
 		case errorCriticalLevelFatal:
-			log.Print(err)
+			log.Print(err.Error())
 			log.Println(" -> Programm was stopped!")
 			os.Exit(1)
 		}

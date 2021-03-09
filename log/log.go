@@ -32,5 +32,5 @@ func Println(string string) {
 }
 
 func Printf(format string, a ...interface{}) {
-	Print(fmt.Sprintf(format, a))
+	Print(fmt.Sprintf(format, a...))
 }

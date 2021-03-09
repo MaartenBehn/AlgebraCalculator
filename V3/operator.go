@@ -89,17 +89,18 @@ func (o *operator) sort() bool {
 	return sorted
 }
 func (o *operator) print() {
-	log.Print("(")
-	if len(o.childs) < 1 {
-		return
+	if o.bracketRoot {
+		log.Print("( ")
 	}
+
 	o.childs[0].print()
 	log.Printf(" %s ", o.name)
-	if len(o.childs) < 2 {
-		return
-	}
+
 	o.childs[1].print()
-	log.Print(")")
+
+	if o.bracketRoot {
+		log.Print(" )")
+	}
 }
 func (o *operator) printTree(indentation int) {
 	if len(o.childs) < 1 {

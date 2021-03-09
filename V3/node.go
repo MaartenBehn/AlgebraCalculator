@@ -140,11 +140,17 @@ func (t *node) sort() bool {
 }
 func (t *node) print() {
 	if len(t.childs) > 0 {
-		log.Print("(")
+
+		if t.bracketRoot {
+			log.Print("(")
+		}
+
 		for _, child := range t.childs {
 			child.print()
 		}
-		log.Print(")")
+		if t.bracketRoot {
+			log.Print(")")
+		}
 	}
 }
 func (t *node) printTree(indentation int) {

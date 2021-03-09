@@ -1,7 +1,6 @@
 package V3
 
 import (
-	"io/ioutil"
 	"strconv"
 	"strings"
 	"unicode"
@@ -40,14 +39,4 @@ func getVector(part string) (*vector, error) {
 
 func getInt(rune uint8) int {
 	return int(rune) - '0'
-}
-
-func ReadFileLines(path string) []string {
-	buf, err := ioutil.ReadFile(path)
-	handelError(err)
-
-	content := string(buf)
-	lines := removeEmptiStrings(splitAny(content, "\n\r"))
-
-	return lines
 }
