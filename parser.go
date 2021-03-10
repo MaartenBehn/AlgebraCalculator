@@ -11,7 +11,7 @@ type parseData struct {
 	found     bool
 	err       error
 	variables []*variable
-	terms     []iNode
+	terms     map[int]iNode
 }
 
 var termParseFunc = []func(part string, data *parseData){
@@ -21,7 +21,7 @@ var termParseFunc = []func(part string, data *parseData){
 	tryParseNumber,
 }
 
-func parseTerm(text string, terms []iNode) (*term, error) {
+func parseTerm(text string, terms map[int]iNode) (*term, error) {
 
 	parts := removeEmptiStrings(strings.Split(text, "="))
 
@@ -144,13 +144,15 @@ func tryParseVariables(part string, data *parseData) {
 	}
 }
 func tryParseTerm(part string, data *parseData) {
-	for _, testTerm := range data.terms {
+	for i := len(data.terms) - 1; i > 0; i-- {
+		testTerm := data.terms[i]
 		if part == testTerm.(*term).name {
 			copy := testTerm.copy()
 			copy.setBracketRoot(true)
 			copy = addParsedNode(copy, data)
 			data.current = copy
 			data.found = true
+			break
 		}
 	}
 }
@@ -177,7 +179,7 @@ func tryParseNumber(part string, data *parseData) {
 	}
 }
 
-func parseRoot(parts []string, funcs []func(part string, data *parseData), varibles []*variable, terms []iNode) (iNode, error, int) {
+func parseRoot(parts []string, funcs []func(part string, data *parseData), varibles []*variable, terms map[int]iNode) (iNode, error, int) {
 	parts = removeEmptiStrings(parts)
 	data := &parseData{
 		root:      newNode(typNone, rankNone, 0),

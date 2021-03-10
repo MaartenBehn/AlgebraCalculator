@@ -7,24 +7,33 @@ import (
 )
 
 type EditorItem struct {
-	content     fyne.CanvasObject
+	content fyne.CanvasObject
+	editor  *Editor
+
 	entry       *widget.Entry
 	label       *widget.Label
 	closeButton *widget.Button
-	index       int
 }
 
-func NewEditorItem() *EditorItem {
-	editorItem := &EditorItem{}
+func NewEditorItem(editor *Editor) *EditorItem {
+	editorItem := &EditorItem{editor: editor}
+
 	editorItem.entry = widget.NewEntry()
+	editorItem.entry.OnSubmitted = (editorItem).onEnter
+
 	editorItem.label = widget.NewLabel("")
 
-	editorItem.content = container.NewVBox(editorItem.entry, editorItem.label)
+	editorItem.closeButton = widget.NewButton("X", (editorItem).onClose)
+
+	editorItem.content = container.NewBorder(nil, nil, nil,
+		container.NewCenter(editorItem.closeButton),
+		container.NewVBox(editorItem.entry, editorItem.label))
 	return editorItem
 }
 
 func (e *EditorItem) setText(text string) {
 	e.entry.SetText(text)
+	e.onEnter(text)
 }
 
 func (e *EditorItem) getText() string {
@@ -33,4 +42,16 @@ func (e *EditorItem) getText() string {
 
 func (e *EditorItem) setResult(text string) {
 	e.label.SetText(text)
+}
+
+func (e *EditorItem) onEnter(string) {
+	e.editor.update()
+}
+
+func (e *EditorItem) onClose() {
+	if len(e.editor.items) <= 1 {
+		e.setText("")
+		return
+	}
+	e.editor.removeItem(e)
 }

@@ -77,6 +77,7 @@ var runtestTerms = []struct {
 	{"a<t> = ( t * t + t + t )", "a<t> = 2 * t + t pow 2"},
 	{"g<a b c> = ( a + b ) * ( a + b )", "g<a b c> = 1 * a pow 2 + 2 * a * b + 1 * b pow 2"},
 	{"a t = sin t", "a<t> = sin<t>"},
+	{"a = sin 4", "a = -0.7568"},
 }
 
 func TestRunning(t *testing.T) {
@@ -88,7 +89,7 @@ func TestRunning(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		termNode = solveTerm(termNode, rules)
+		termNode = solveTerm(termNode)
 		logged := log.GetLog()
 
 		termNode.(*term).printTerm()

@@ -2,14 +2,13 @@ package AlgebraCalculator
 
 import (
 	"AlgebraCalculator/log"
-	"strings"
 )
 
 type term struct {
 	*namedNode
 	variables []*variable
 	root      iNode
-	logParts  []string
+	fromLine  int
 }
 
 func newTerm(name string, variables []*variable) *term {
@@ -73,17 +72,75 @@ func (t *term) printTerm() {
 
 	t.root.print()
 }
+func (t *term) solveTerm() {
 
-func (t *term) addLog(texts []string) {
-	t.logParts = append(t.logParts, texts...)
-}
-func (t *term) clearLog() {
-	t.logParts = nil
-}
-func (t *term) getLogString() string {
-	builder := strings.Builder{}
-	for _, string := range t.logParts {
-		builder.WriteString(string)
+	log.Print("\n")
+	t.printTerm()
+	log.Print("\n")
+
+	root := t.root
+	log.Print("Parsed:")
+	root.printTree(0)
+	log.Print("\n")
+
+	for _, ruleList := range simpRules {
+		if ruleList == nil {
+			continue
+		}
+
+		run := true
+		for i := 0; i < 1000 && run; i++ {
+
+			run = false
+			run2 := true
+			for run2 {
+				run2 = root.sort()
+
+				if run2 {
+					log.Print("Sort:")
+					root.printTree(0)
+					log.Print("\n")
+
+					run = true
+				}
+			}
+
+			run2 = true
+			for run2 {
+				run2 = root.solve()
+
+				if run2 {
+					log.Print("Solve:")
+					root.printTree(0)
+					log.Print("\n")
+
+					run = true
+				}
+			}
+
+			run2 = true
+			for run2 {
+				for _, rule := range ruleList {
+					run2 = rule.applyRule(root, rule.search)
+
+					if run2 {
+						log.Print("Simpify: ")
+						log.Printf("%s", rule.base)
+						root.printTree(0)
+						log.Print("\n")
+
+						root.solve()
+
+						run = true
+						break
+					}
+				}
+			}
+		}
 	}
-	return builder.String()
+	t.root = root
+
+	log.Print(" => ")
+	t.printTerm()
+	log.Print("\n")
 }

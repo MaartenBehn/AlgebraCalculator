@@ -18,9 +18,7 @@ func NewEditor() *Editor {
 
 	header := container.NewBorder(nil, nil, nil,
 		container.NewHBox(
-			widget.NewButton("Run", func() {
-				e.onRun()
-			}),
+			widget.NewButton("Clear All", (e).clearAll),
 			widget.NewButton("Log", func() {
 				changeContent(log.content)
 			}),
@@ -33,34 +31,45 @@ func NewEditor() *Editor {
 	e.content = container.NewBorder(header, nil, nil, nil, scroll)
 
 	e.addItem()
-	e.addItem()
-	e.addItem()
 
 	return e
 }
 
 func (e *Editor) addItem() {
-	editorItem := NewEditorItem()
-	editorItem.index = len(e.list.Objects)
+	editorItem := NewEditorItem(e)
 	e.list.Add(editorItem.content)
 	e.items = append(e.items, editorItem)
 }
 
-func (e *Editor) removeItem(editorItem EditorItem) {
+func (e *Editor) removeItem(editorItem *EditorItem) {
 	e.list.Remove(editorItem.content)
-	e.items = append(e.items[:editorItem.index], e.items[editorItem.index+1:]...)
+
+	var index int
+	for i, item := range e.items {
+		if item == editorItem {
+			index = i
+			break
+		}
+	}
+	e.items = append(e.items[:index], e.items[index+1:]...)
 }
 
-func (e *Editor) onRun() {
-	results, logged := AlgebraCalculator.Run(e.getAllTexts())
+func (e *Editor) update() {
+	if e.items[len(e.items)-1].getText() != "" {
+		e.addItem()
+	}
+
+	results, logged := AlgebraCalculator.Run(e.getAllTexts()...)
 
 	for i, item := range e.items {
-		if i < len(results) {
+		if results[i] == "" {
+			item.setResult("")
+		} else {
 			item.setResult(results[i])
 		}
 	}
 
-	log.setText(logged)
+	log.setTexts(logged)
 }
 
 func (e *Editor) getAllTexts() []string {
@@ -69,4 +78,11 @@ func (e *Editor) getAllTexts() []string {
 		texts = append(texts, item.getText())
 	}
 	return texts
+}
+
+func (e *Editor) clearAll() {
+	for _, item := range e.items {
+		e.removeItem(item)
+	}
+	e.addItem()
 }

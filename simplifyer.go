@@ -1,6 +1,9 @@
 package AlgebraCalculator
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 const (
 	typSimpVec = 1001
@@ -26,40 +29,35 @@ func newSimpNode(typeId int, id int, inverted bool, allIds bool) *simpNode {
 	node.definer += strconv.Itoa(id)
 	return node
 }
-
 func (s *simpNode) copy() iNode {
 	return newSimpNode(s.typeId, s.id, s.inverted, s.allIds)
 }
 
-type simpDataBuffer struct {
-	nodes []iNode
-}
+var simpRules [][]simpRule
 
-func (s *simpDataBuffer) checkSimpNode(node iNode, nodeSimp iNode) bool {
+func initRules(ruleStrings []string) {
+	for _, ruleString := range ruleStrings {
 
-	index := len(s.nodes)
-	for i, testnode := range s.nodes {
-		if deepEqual(node, testnode) {
-			index = i
-			break
+		var simpRuleSet []simpRule
+
+		lines := removeEmptiStrings(splitAny(ruleString, "\n\r"))
+
+		for i, line := range lines {
+			if !strings.Contains(line, "=") || strings.Contains(line, "//") {
+				continue
+			}
+
+			simpRule, err := parseSimpRule(line)
+			if handelError(err) {
+				continue
+			}
+
+			simpRule.line = i
+			simpRuleSet = append(simpRuleSet, simpRule)
 		}
+
+		simpRules = append(simpRules, simpRuleSet)
 	}
-
-	if nodeSimp.(*simpNode).id >= len(s.nodes) {
-		s.nodes = append(s.nodes, node)
-	}
-
-	debug := nodeSimp.(*simpNode).id == index || (nodeSimp.(*simpNode).allIds && nodeSimp.(*simpNode).id >= index)
-	return debug
-}
-func (s *simpDataBuffer) getReplacement(node iNode) iNode {
-	replacement := node
-
-	if node.getType() >= 1000 {
-		replacement = s.nodes[node.(*simpNode).id]
-	}
-
-	return replacement
 }
 
 type simpRule struct {
@@ -135,4 +133,35 @@ func (s simpRule) simpInsert(simpNode iNode, dataBuffer *simpDataBuffer) {
 	for _, child := range replacement.getChilds() {
 		s.simpInsert(child, dataBuffer)
 	}
+}
+
+type simpDataBuffer struct {
+	nodes []iNode
+}
+
+func (s *simpDataBuffer) checkSimpNode(node iNode, nodeSimp iNode) bool {
+
+	index := len(s.nodes)
+	for i, testnode := range s.nodes {
+		if deepEqual(node, testnode) {
+			index = i
+			break
+		}
+	}
+
+	if nodeSimp.(*simpNode).id >= len(s.nodes) {
+		s.nodes = append(s.nodes, node)
+	}
+
+	debug := nodeSimp.(*simpNode).id == index || (nodeSimp.(*simpNode).allIds && nodeSimp.(*simpNode).id >= index)
+	return debug
+}
+func (s *simpDataBuffer) getReplacement(node iNode) iNode {
+	replacement := node
+
+	if node.getType() >= 1000 {
+		replacement = s.nodes[node.(*simpNode).id]
+	}
+
+	return replacement
 }

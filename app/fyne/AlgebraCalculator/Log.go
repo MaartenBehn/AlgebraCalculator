@@ -44,7 +44,7 @@ func (l *Log) newList(lines []string) {
 	})
 }
 
-func (l *Log) setText(text string) {
+func (l *Log) setTexts(text string) {
 	lines := strings.Split(text, "\n")
 	l.newList(lines)
 }
