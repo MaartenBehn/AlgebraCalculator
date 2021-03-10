@@ -17,13 +17,15 @@ const (
 
 	nodeFlagBracketRoot = 30
 
-	nodeFlagMax = 100
+	nodeFlagMax = 40
 )
 
 type node struct {
 	childs []*node
 
-	data  string
+	data      string
+	dataFloat float64
+
 	flags [nodeFlagMax]bool
 }
 
@@ -44,7 +46,6 @@ func NewNode(data string, flags ...int) *node {
 
 	return node
 }
-
 func (n *node) setChilds(childs ...*node) {
 	n.childs = childs
 }

@@ -1,5 +1,7 @@
 package V4
 
+import "strconv"
+
 const (
 	rankNone            = 0
 	rankRoot            = 1
@@ -42,7 +44,7 @@ func (p *parserNode) updateChilds() {
 	}
 }
 
-var tryParseFuncs = []func(text string) *parserNode{
+var parseFuncs = []func(text string) *parserNode{
 	func(text string) *parserNode { return tryParseNumber(text) },
 	func(text string) *parserNode { return tryParseVaraible(text) },
 	func(text string) *parserNode { return tryParseSimpleOpperator(text, "+", rankAddSub) },
@@ -66,6 +68,9 @@ func tryParseNumber(text string) *parserNode {
 	}
 
 	node := NewParserNode(rankTermEnd, 0, 0, NewNode(text, nodeFlagData, nodeFlagNumber))
+	if x, err := strconv.ParseFloat(text, 64); !handelError(err) {
+		node.dataFloat = x
+	}
 	return node
 }
 
@@ -121,7 +126,7 @@ func parseRoot(parts ...string) (*parserNode, int, error) {
 	return *root, i, nil
 }
 func tryParse(part string) (node *parserNode, err error) {
-	for _, parseFunc := range tryParseFuncs {
+	for _, parseFunc := range parseFuncs {
 		node = parseFunc(part)
 		if node != nil {
 			return node, nil

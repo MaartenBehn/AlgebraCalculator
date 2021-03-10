@@ -1,6 +1,9 @@
 package V4
 
-import "unicode"
+import (
+	"strings"
+	"unicode"
+)
 
 func isNumber(text string) bool {
 	is := true
@@ -10,4 +13,20 @@ func isNumber(text string) bool {
 		}
 	}
 	return is
+}
+
+func splitAny(s string, seps string) []string {
+	splitter := func(r rune) bool {
+		return strings.ContainsRune(seps, r)
+	}
+	return removeEmptiStrings(strings.FieldsFunc(s, splitter)...)
+}
+
+func removeEmptiStrings(strings ...string) []string {
+	for i := len(strings) - 1; i >= 0; i-- {
+		if strings[i] == "" {
+			strings = append(strings[:i], strings[i+1:]...)
+		}
+	}
+	return strings
 }
