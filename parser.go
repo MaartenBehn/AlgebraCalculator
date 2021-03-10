@@ -144,7 +144,7 @@ func tryParseVariables(part string, data *parseData) {
 	}
 }
 func tryParseTerm(part string, data *parseData) {
-	for i := len(data.terms) - 1; i > 0; i-- {
+	for i := len(data.terms) - 1; i >= 0; i-- {
 		testTerm := data.terms[i]
 		if part == testTerm.(*term).name {
 			copy := testTerm.copy()

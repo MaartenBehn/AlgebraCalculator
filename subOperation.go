@@ -25,6 +25,17 @@ func (s *subOpperation) copy() iNode {
 	}
 	return copy
 }
+func (s *subOpperation) check() error {
+	err := s.node.check()
+	if err != nil {
+		return err
+	}
+
+	if len(s.childs) < 2 {
+		return newError(errorTypParsing, errorCriticalLevelPartial, "sub Operator has less than two children.")
+	}
+	return nil
+}
 func (s *subOpperation) solve() bool {
 	s.node.solve()
 

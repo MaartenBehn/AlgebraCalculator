@@ -32,6 +32,17 @@ func (f *termFunction) copy() iNode {
 	}
 	return copy
 }
+func (f *termFunction) check() error {
+	err := f.node.check()
+	if err != nil {
+		return err
+	}
+
+	if len(f.childs) == 0 {
+		return newError(errorTypParsing, errorCriticalLevelPartial, "termfunction has no children")
+	}
+	return nil
+}
 func (f *termFunction) solve() bool {
 
 	if len(f.childs) != 1 {

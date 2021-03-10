@@ -19,7 +19,7 @@ func NewEditorItem(editor *Editor) *EditorItem {
 	editorItem := &EditorItem{editor: editor}
 
 	editorItem.entry = widget.NewEntry()
-	editorItem.entry.OnSubmitted = (editorItem).onEnter
+	editorItem.entry.OnChanged = (editorItem).onChange
 
 	editorItem.label = widget.NewLabel("")
 
@@ -33,7 +33,7 @@ func NewEditorItem(editor *Editor) *EditorItem {
 
 func (e *EditorItem) setText(text string) {
 	e.entry.SetText(text)
-	e.onEnter(text)
+	e.onChange(text)
 }
 
 func (e *EditorItem) getText() string {
@@ -44,7 +44,7 @@ func (e *EditorItem) setResult(text string) {
 	e.label.SetText(text)
 }
 
-func (e *EditorItem) onEnter(string) {
+func (e *EditorItem) onChange(string) {
 	e.editor.update()
 }
 

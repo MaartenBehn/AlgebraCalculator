@@ -24,8 +24,12 @@ func Run(termsLines ...string) (results map[int]string, loggged string) {
 			continue
 		}
 
-		term.solveTerm()
+		err = term.check()
+		if handelError(err) {
+			continue
+		}
 
+		term.solveTerm()
 		termMap[i] = term
 	}
 	loggged = log.GetLog()

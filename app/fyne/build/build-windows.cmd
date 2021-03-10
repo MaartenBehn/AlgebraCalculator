@@ -1,0 +1,2 @@
+cd ../AlgebraCalculator
+go build .

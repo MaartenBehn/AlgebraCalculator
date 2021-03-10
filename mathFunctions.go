@@ -38,6 +38,17 @@ func (f *mathFunction) copy() iNode {
 	}
 	return copy
 }
+func (f *mathFunction) check() error {
+	err := f.node.check()
+	if err != nil {
+		return err
+	}
+
+	if len(f.childs) == 0 {
+		return newError(errorTypParsing, errorCriticalLevelPartial, "math function has no children.")
+	}
+	return nil
+}
 func (f *mathFunction) solve() bool {
 	f.node.solve()
 

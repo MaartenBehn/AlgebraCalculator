@@ -51,9 +51,17 @@ Function.Calc(){
     return term
 }
 
-
 rules:
 
 alle Variablen zur Rechten Seite
 alle Zahlen zu linken Seite
+
+V4
+basic type
+- Number als Bruch ausrechen bar
+- Contestant umwandelbar
+- Variable einsetzen.
+
+2 Version von Output
+
 

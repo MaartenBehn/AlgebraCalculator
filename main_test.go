@@ -84,20 +84,52 @@ func TestRunning(t *testing.T) {
 	setUpForTest()
 
 	for i, testTerm := range runtestTerms {
-		var termNode iNode
+
 		termNode, err := parseTerm(testTerm.input, nil)
 		if err != nil {
 			t.Error(err)
 		}
-		termNode = solveTerm(termNode)
+		termNode.solveTerm()
 		logged := log.GetLog()
 
-		termNode.(*term).printTerm()
+		termNode.printTerm()
 		out := log.GetLog()
 		if out != testTerm.expected {
 			t.Errorf("Term %d: expected %s actual %s", i, testTerm.expected, out)
 			t.Error(logged)
 		}
 	}
+}
 
+var inavlidtestTerms = []struct {
+	input string
+}{
+	{"seges"},
+	{"="},
+	{" = "},
+}
+
+func TestInvalidInput(t *testing.T) {
+	setUpForTest()
+
+	for _, testTerm := range inavlidtestTerms {
+
+		termNode, err := parseTerm(testTerm.input, nil)
+		if err != nil {
+			t.Log(err)
+			continue
+		}
+
+		err = termNode.check()
+		if err != nil {
+			t.Log(err)
+			continue
+		}
+
+		termNode.solve()
+
+		if r := recover(); r != nil {
+			t.Errorf("The code did panic")
+		}
+	}
 }

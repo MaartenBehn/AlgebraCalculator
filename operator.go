@@ -39,6 +39,17 @@ func (o *operator) copy() iNode {
 	}
 	return copy
 }
+func (o *operator) check() error {
+	err := o.node.check()
+	if err != nil {
+		return err
+	}
+
+	if len(o.childs) < 2 {
+		return newError(errorTypParsing, errorCriticalLevelPartial, "Opperator has less than two children.")
+	}
+	return nil
+}
 func (o *operator) solve() bool {
 	o.node.solve()
 
@@ -52,6 +63,10 @@ func (o *operator) solve() bool {
 }
 func (o *operator) sort() bool {
 	sorted := o.node.sort()
+
+	if len(o.childs) < 2 {
+		return sorted
+	}
 
 	child0 := o.childs[0]
 	child1 := o.childs[1]
@@ -92,10 +107,16 @@ func (o *operator) print() {
 	if o.bracketRoot {
 		log.Print("( ")
 	}
+	if len(o.childs) < 1 {
+		return
+	}
 
 	o.childs[0].print()
 	log.Printf(" %s ", o.name)
 
+	if len(o.childs) < 2 {
+		return
+	}
 	o.childs[1].print()
 
 	if o.bracketRoot {

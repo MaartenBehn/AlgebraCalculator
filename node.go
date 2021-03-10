@@ -20,6 +20,7 @@ type iNode interface {
 	getBracketRoot() bool
 
 	copy() iNode
+	check() error
 	solve() bool
 	sort() bool
 	print()
@@ -119,6 +120,15 @@ func (t *node) copy() iNode {
 		copy.childs[i] = childCopy
 	}
 	return copy
+}
+func (t *node) check() error {
+	for _, child := range t.childs {
+		err := child.check()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 func (t *node) solve() bool {
 	solved := false

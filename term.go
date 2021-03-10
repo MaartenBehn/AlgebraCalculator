@@ -50,6 +50,22 @@ func (t *term) copy() iNode {
 	copy.root = t.root.copy()
 	return copy
 }
+func (t *term) check() error {
+	err := t.node.check()
+	if err != nil {
+		return err
+	}
+
+	err = t.root.check()
+	if err != nil {
+		return err
+	}
+
+	if t.root.getType() == typNone {
+		return newError(errorTypParsing, errorCriticalLevelPartial, "root type is none.")
+	}
+	return nil
+}
 func (t *term) print() {
 	log.Print(t.name)
 	t.node.print()

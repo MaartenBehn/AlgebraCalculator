@@ -19,6 +19,9 @@ func main() {
 
 	a := app.New()
 
+	theme := darkTheme{}
+	a.Settings().SetTheme(theme)
+
 	window = a.NewWindow("AlgebraCalculator")
 	window.Resize(fyne.NewSize(1600, 900))
 
