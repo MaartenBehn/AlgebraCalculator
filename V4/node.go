@@ -1,32 +1,33 @@
 package V4
 
 const (
-	nodeFlagNone = 0
-	nodeFlagRoot = 1
+	flagNone = 0
+	flagRoot = 1
 
 	// Basic Types no Children
-	nodeFlagData     = 10
-	nodeFlagNumber   = 11
-	nodeFlagConstant = 12
-	nodeFlagVariable = 13
+	flagData     = 10
+	flagNumber   = 11
+	flagConstant = 12
+	flagVariable = 13
 
 	// Action Typs have Children
-	nodeFlagAction       = 20
-	nodeFlagOpperator    = 21
-	nodeFlagMathFunction = 22
+	flagAction    = 20
+	flagOperator1 = 21
+	flagOperator2 = 22
+	flagFraction  = 23
 
-	nodeFlagBracketRoot = 30
+	flagBracketRoot = 30
 
-	nodeFlagMax = 40
+	flagMax = 40
 )
 
 type node struct {
 	childs []*node
 
-	data      string
-	dataFloat float64
+	data       string
+	dataNumber float64
 
-	flags [nodeFlagMax]bool
+	flagValues [flagMax]bool
 }
 
 func NewNode(data string, flags ...int) *node {
@@ -34,14 +35,14 @@ func NewNode(data string, flags ...int) *node {
 		data: data,
 	}
 
-	// Set all flags that are parsed in.
+	// Set all flagValues that are parsed in.
 	for _, flag := range flags {
 		node.setFlag(flag, true)
 	}
 
-	// If no flags are set node will ge flag none
+	// If no flagValues are set node will ge flag none
 	if len(flags) == 0 {
-		node.setFlag(nodeFlagNone, true)
+		node.setFlag(flagNone, true)
 	}
 
 	return node
@@ -51,12 +52,35 @@ func (n *node) setChilds(childs ...*node) {
 }
 func (n *node) setFlag(flag int, value bool) {
 	// Remove none when an other flag is set.
-	if n.flags[nodeFlagNone] && flag != nodeFlagNone && value {
-		n.flags[nodeFlagNone] = false
+	if n.flagValues[flagNone] && flag != flagNone && value {
+		n.flagValues[flagNone] = false
 	}
 
-	n.flags[flag] = value
+	n.flagValues[flag] = value
 }
 func (n *node) hasFlag(flag int) bool {
-	return n.flags[flag]
+	return n.flagValues[flag]
+}
+func (n *node) hasAllFlagsOfNode(reference *node) bool {
+	for flag, flagValue := range reference.flagValues {
+		if flagValue && !n.hasFlag(flag) {
+			return false
+		}
+	}
+	return true
+}
+func (n *node) hasAllFlagsOfNodeDeep(reference *node) bool {
+	if !n.hasAllFlagsOfNode(reference) {
+		return false
+	}
+
+	for i, child := range n.childs {
+		if i >= len(reference.childs) {
+			return false
+		}
+		if !child.hasAllFlagsOfNodeDeep(reference.childs[i]) {
+			return false
+		}
+	}
+	return true
 }

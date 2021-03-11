@@ -10,7 +10,7 @@ func TestSimplifyRoot(t *testing.T) {
 	}
 	simplifyRoot(term.root)
 
-	if term.root.dataFloat != 8 {
+	if term.root.dataNumber != 8 {
 		t.Error("Fail")
 	}
 

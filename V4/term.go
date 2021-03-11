@@ -19,7 +19,7 @@ func parseTerm(text string) (*term, error) {
 	parts1 := splitAny(parts[0], " <>")
 	var variables []*node
 	for i := 1; i < len(parts1); i++ {
-		variables = append(variables, NewNode(parts1[i], nodeFlagData, nodeFlagVariable))
+		variables = append(variables, NewNode(parts1[i], flagData, flagVariable))
 	}
 
 	parts2 := splitAny(parts[1], " <>")

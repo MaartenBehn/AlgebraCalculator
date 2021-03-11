@@ -7,19 +7,19 @@ func TestAddParsedNode(t *testing.T) {
 	root := NewParserNode(0, 1, 1, NewNode("root"))
 	current := root
 
-	node1 := NewParserNode(5, 2, 2, NewNode("1", nodeFlagOpperator))
+	node1 := NewParserNode(5, 2, 2, NewNode("1", flagOperator2))
 	addParsedNode(node1, &root, &current)
 	if root.data != node1.data {
 		t.Errorf("Failed")
 	}
 
-	node2 := NewParserNode(8, 2, 2, NewNode("2", nodeFlagOpperator))
+	node2 := NewParserNode(8, 2, 2, NewNode("2", flagOperator2))
 	addParsedNode(node2, &root, &current)
 	if root.parserChilds[0] != node2 {
 		t.Errorf("Failed")
 	}
 
-	node3 := NewParserNode(4, 2, 2, NewNode("3", nodeFlagOpperator))
+	node3 := NewParserNode(4, 2, 2, NewNode("3", flagOperator2))
 	addParsedNode(node3, &root, &current)
 	if root.node != node3.node {
 		t.Errorf("Failed")

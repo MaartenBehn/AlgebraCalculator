@@ -59,7 +59,7 @@ func tryParseSimpleOpperator(text string, name string, rank int) *parserNode {
 		return nil
 	}
 
-	node := NewParserNode(rank, 2, 2, NewNode(name, nodeFlagAction, nodeFlagOpperator))
+	node := NewParserNode(rank, 2, 2, NewNode(name, flagAction, flagOperator2))
 	return node
 }
 func tryParseNumber(text string) *parserNode {
@@ -67,9 +67,9 @@ func tryParseNumber(text string) *parserNode {
 		return nil
 	}
 
-	node := NewParserNode(rankTermEnd, 0, 0, NewNode(text, nodeFlagData, nodeFlagNumber))
+	node := NewParserNode(rankTermEnd, 0, 0, NewNode(text, flagData, flagNumber))
 	if x, err := strconv.ParseFloat(text, 64); !handelError(err) {
-		node.dataFloat = x
+		node.dataNumber = x
 	}
 	return node
 }
@@ -79,7 +79,7 @@ var currentVariables []*node
 func tryParseVaraible(text string) *parserNode {
 	for _, variable := range currentVariables {
 		if text == variable.data {
-			return NewParserNode(rankTermEnd, 0, 0, NewNode(text, nodeFlagData, nodeFlagVariable))
+			return NewParserNode(rankTermEnd, 0, 0, NewNode(text, flagData, flagVariable))
 		}
 	}
 	return nil
@@ -103,7 +103,7 @@ func parseRoot(parts ...string) (*parserNode, int, error) {
 				return *root, i, err
 			}
 
-			(*subRoot).setFlag(nodeFlagBracketRoot, true)
+			(*subRoot).setFlag(flagBracketRoot, true)
 			(*current).parserChilds = append((*current).parserChilds, subRoot)
 			i += index + 1
 			continue
@@ -139,7 +139,7 @@ func tryParse(part string) (node *parserNode, err error) {
 func addParsedNode(newNode *parserNode, root **parserNode, current **parserNode) {
 
 	// Case one the current newNode is noen so just replace it.
-	if (*current).hasFlag(nodeFlagNone) {
+	if (*current).hasFlag(flagNone) {
 		newNode.setParserChilds((*current).parserChilds...)
 		partent := getParentOfNode(*current, *root)
 		if partent != nil {
@@ -153,7 +153,7 @@ func addParsedNode(newNode *parserNode, root **parserNode, current **parserNode)
 		*current = newNode
 
 		// Case two the newNode rank is higer the current so the newNode needs to be child of current.
-	} else if newNode.rank > (*current).rank || newNode.hasFlag(nodeFlagBracketRoot) {
+	} else if newNode.rank > (*current).rank || newNode.hasFlag(flagBracketRoot) {
 
 		childs := (*current).parserChilds
 		if len(childs) < (*current).maxChilds {
@@ -169,7 +169,7 @@ func addParsedNode(newNode *parserNode, root **parserNode, current **parserNode)
 		(*current).setParserChilds(childs...)
 
 		// set current as newNode when we adden an action newNode
-		if newNode.hasFlag(nodeFlagAction) {
+		if newNode.hasFlag(flagAction) {
 			*current = newNode
 		}
 
