@@ -1,8 +1,9 @@
 package V4
 
 const (
-	flagNone = 0
-	flagRoot = 1
+	flagNone     = 0
+	flagRoot     = 1
+	flagRulePart = 2
 
 	// Basic Types no Children
 	flagData     = 10
@@ -30,9 +31,10 @@ type node struct {
 	flagValues [flagMax]bool
 }
 
-func NewNode(data string, flags ...int) *node {
+func NewNode(data string, dataNumber float64, flags ...int) *node {
 	node := &node{
-		data: data,
+		data:       data,
+		dataNumber: dataNumber,
 	}
 
 	// Set all flagValues that are parsed in.
@@ -69,18 +71,15 @@ func (n *node) hasAllFlagsOfNode(reference *node) bool {
 	}
 	return true
 }
-func (n *node) hasAllFlagsOfNodeDeep(reference *node) bool {
-	if !n.hasAllFlagsOfNode(reference) {
-		return false
-	}
+func (n *node) equal(reference *node) bool {
+	return n.hasAllFlagsOfNode(reference) && n.data == reference.data && n.dataNumber == reference.dataNumber
+}
+func (n *node) copy() *node {
+	copy := NewNode(n.data, n.dataNumber)
+	copy.flagValues = n.flagValues
 
-	for i, child := range n.childs {
-		if i >= len(reference.childs) {
-			return false
-		}
-		if !child.hasAllFlagsOfNodeDeep(reference.childs[i]) {
-			return false
-		}
+	for _, child := range n.childs {
+		copy.childs = append(copy.childs, child.copy())
 	}
-	return true
+	return copy
 }

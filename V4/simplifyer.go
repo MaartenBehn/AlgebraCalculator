@@ -1,5 +1,12 @@
 package V4
 
+var simpPatterns []simpPattern
+
+type simpPattern struct {
+	pattern func(root *node) bool
+	apply   func(root *node) *node
+}
+
 func simplifyRoot(root *node) {
 	found := true
 	for found {

@@ -2,7 +2,6 @@ package V4
 
 import (
 	"AlgebraCalculator/log"
-	"os"
 	"reflect"
 	"strings"
 )
@@ -59,9 +58,7 @@ func handelError(err error) bool {
 			log.Print(err.Error())
 			return true
 		case errorCriticalLevelFatal:
-			log.Print(err.Error())
-			log.Println(" -> Programm was stopped!")
-			os.Exit(1)
+			panic(err)
 		}
 		handelError(newError(errorTypErrorhandling, errorCriticalLevelFatal, "calculatorError \""+err.(*calculatorError).text+"\" has not valid critiacl level!"))
 	} else {

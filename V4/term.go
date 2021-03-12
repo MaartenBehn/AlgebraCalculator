@@ -1,5 +1,19 @@
 package V4
 
+var parseTermFuncs []func(text string) *parserNode
+
+func initTerm() {
+	parseTermFuncs = append(parseTermFuncs,
+		func(text string) *parserNode { return tryParseNumber(text) },
+		func(text string) *parserNode { return tryParseVaraible(text) },
+		func(text string) *parserNode { return tryParseOperator2(text, "+", rankAddSub) },
+		func(text string) *parserNode { return tryParseOperator2(text, "-", rankAddSub) },
+		func(text string) *parserNode { return tryParseOperator2(text, "*", rankMul) },
+		func(text string) *parserNode { return tryParseOperator2(text, "/", rankMul) },
+		func(text string) *parserNode { return tryParseOperator2(text, "pow", rankPow) },
+	)
+}
+
 type term struct {
 	name      string
 	variables []*node
@@ -19,11 +33,12 @@ func parseTerm(text string) (*term, error) {
 	parts1 := splitAny(parts[0], " <>")
 	var variables []*node
 	for i := 1; i < len(parts1); i++ {
-		variables = append(variables, NewNode(parts1[i], flagData, flagVariable))
+		variables = append(variables, NewNode(parts1[i], 0, flagData, flagVariable))
 	}
 
 	parts2 := splitAny(parts[1], " <>")
-	root, _, err := parseRoot(parts2...)
+	currentVariables = variables
+	root, _, err := parseRoot(parseTermFuncs, parts2...)
 	if handelError(err) {
 		return nil, newError(errorTypParsing, errorCriticalLevelPartial, "term could not be parsed!")
 	}

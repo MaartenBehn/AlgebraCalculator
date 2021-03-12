@@ -44,22 +44,12 @@ func (p *parserNode) updateChilds() {
 	}
 }
 
-var parseFuncs = []func(text string) *parserNode{
-	func(text string) *parserNode { return tryParseNumber(text) },
-	func(text string) *parserNode { return tryParseVaraible(text) },
-	func(text string) *parserNode { return tryParseSimpleOpperator(text, "+", rankAddSub) },
-	func(text string) *parserNode { return tryParseSimpleOpperator(text, "-", rankAddSub) },
-	func(text string) *parserNode { return tryParseSimpleOpperator(text, "*", rankMul) },
-	func(text string) *parserNode { return tryParseSimpleOpperator(text, "/", rankMul) },
-	func(text string) *parserNode { return tryParseSimpleOpperator(text, "pow", rankPow) },
-}
-
-func tryParseSimpleOpperator(text string, name string, rank int) *parserNode {
+func tryParseOperator2(text string, name string, rank int) *parserNode {
 	if text != name {
 		return nil
 	}
 
-	node := NewParserNode(rank, 2, 2, NewNode(name, flagAction, flagOperator2))
+	node := NewParserNode(rank, 2, 2, NewNode(name, 0, flagAction, flagOperator2))
 	return node
 }
 func tryParseNumber(text string) *parserNode {
@@ -67,11 +57,10 @@ func tryParseNumber(text string) *parserNode {
 		return nil
 	}
 
-	node := NewParserNode(rankTermEnd, 0, 0, NewNode(text, flagData, flagNumber))
 	if x, err := strconv.ParseFloat(text, 64); !handelError(err) {
-		node.dataNumber = x
+		return NewParserNode(rankTermEnd, 0, 0, NewNode(text, x, flagData, flagNumber))
 	}
-	return node
+	return nil
 }
 
 var currentVariables []*node
@@ -79,16 +68,35 @@ var currentVariables []*node
 func tryParseVaraible(text string) *parserNode {
 	for _, variable := range currentVariables {
 		if text == variable.data {
-			return NewParserNode(rankTermEnd, 0, 0, NewNode(text, flagData, flagVariable))
+			return NewParserNode(rankTermEnd, 0, 0, NewNode(text, 0, flagData, flagVariable))
 		}
 	}
 	return nil
 }
 
-func parseRoot(parts ...string) (*parserNode, int, error) {
-	rootVar := NewParserNode(0, 1, 1, NewNode(""))
+func tryParseReplaceRulePart(text string) *parserNode {
+	parts := splitAny(text, "_")
+	if len(parts) != 2 {
+		return nil
+	}
+
+	switch parts[0] {
+	case "data":
+		return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagData, flagRulePart))
+	case "num":
+		return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagNumber, flagRulePart))
+	case "var":
+		return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagVariable, flagRulePart))
+	case "const":
+		return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagConstant, flagRulePart))
+	}
+	return nil
+}
+
+func parseRoot(parseFuncs []func(text string) *parserNode, parts ...string) (*parserNode, int, error) {
+	rootVar := NewParserNode(0, 1, 1, NewNode("", 0))
 	root := &rootVar
-	currentVar := NewParserNode(0, 1, 1, NewNode(""))
+	currentVar := NewParserNode(0, 1, 1, NewNode("", 0))
 	current := &currentVar
 
 	var i int
@@ -98,7 +106,7 @@ func parseRoot(parts ...string) (*parserNode, int, error) {
 		// When hitting a bracket we go one recursion deeper and parse there until we hit a closing bracket.
 		// And skip all parts that have been parsed in the bracket.
 		if part == "(" {
-			subRoot, index, err := parseRoot(parts[i+1:]...)
+			subRoot, index, err := parseRoot(parseFuncs, parts[i+1:]...)
 			if err != nil {
 				return *root, i, err
 			}
@@ -113,7 +121,7 @@ func parseRoot(parts ...string) (*parserNode, int, error) {
 		}
 
 		// Trying to parse the string
-		node, err := tryParse(part)
+		node, err := tryParse(part, parseFuncs)
 		if err != nil {
 			return *root, i, err
 		}
@@ -125,7 +133,7 @@ func parseRoot(parts ...string) (*parserNode, int, error) {
 
 	return *root, i, nil
 }
-func tryParse(part string) (node *parserNode, err error) {
+func tryParse(part string, parseFuncs []func(text string) *parserNode) (node *parserNode, err error) {
 	for _, parseFunc := range parseFuncs {
 		node = parseFunc(part)
 		if node != nil {

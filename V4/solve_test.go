@@ -2,7 +2,8 @@ package V4
 
 import "testing"
 
-func TestSimplifyRoot(t *testing.T) {
+func TestSolve(t *testing.T) {
+	Init()
 
 	term, err := parseTerm("a = 4 + 4")
 	if err != nil {
@@ -13,5 +14,4 @@ func TestSimplifyRoot(t *testing.T) {
 	if term.root.dataNumber != 8 {
 		t.Error("Fail")
 	}
-
 }
