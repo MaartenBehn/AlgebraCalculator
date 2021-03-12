@@ -74,12 +74,24 @@ func (n *node) hasAllFlagsOfNode(reference *node) bool {
 func (n *node) equal(reference *node) bool {
 	return n.hasAllFlagsOfNode(reference) && n.data == reference.data && n.dataNumber == reference.dataNumber
 }
-func (n *node) copy() *node {
+func (n *node) equalDeep(reference *node) bool {
+	if len(n.childs) != len(reference.childs) || !n.equal(reference) {
+		return false
+	}
+
+	for i, child := range n.childs {
+		if !child.equal(reference.childs[i]) {
+			return false
+		}
+	}
+	return true
+}
+func (n *node) copyDeep() *node {
 	copy := NewNode(n.data, n.dataNumber)
 	copy.flagValues = n.flagValues
 
 	for _, child := range n.childs {
-		copy.childs = append(copy.childs, child.copy())
+		copy.childs = append(copy.childs, child.copyDeep())
 	}
 	return copy
 }

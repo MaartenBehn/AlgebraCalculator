@@ -1,21 +1,14 @@
 package V4
 
+import "strconv"
+
 var parseReplaceFuncs []func(text string) *parserNode
 
 func initReplace() {
-	parseReplaceFuncs = append(parseReplaceFuncs,
-		func(text string) *parserNode { return tryParseNumber(text) },
-		func(text string) *parserNode { return tryParseReplaceRulePart(text) },
-		func(text string) *parserNode { return tryParseOperator2(text, "+", rankAddSub) },
-		func(text string) *parserNode { return tryParseOperator2(text, "-", rankAddSub) },
-		func(text string) *parserNode { return tryParseOperator2(text, "*", rankMul) },
-		func(text string) *parserNode { return tryParseOperator2(text, "/", rankMul) },
-		func(text string) *parserNode { return tryParseOperator2(text, "pow", rankPow) },
-	)
-
 	ruleStrings := []string{
-		"data_0 + data_0 = 2 * data_0",
-		"( data_0 + data_1i ) * ( data_0 + data_1i ) = data_0 pow 2 + data_1 pow 2 + 2 * data_0 * data_1",
+		"( all_0 + all_0 ) * ( all_0 + all_0 ) = 4 * all_0 pow 2",
+		"( all_0 + all_1 ) * ( all_0 + all_1 ) = all_0 pow 2 + all_1 pow 2 + 2 * all_0 * all_1",
+		"all_0 + all_0 = 2 * all_0",
 	}
 
 	for _, ruleString := range ruleStrings {
@@ -45,16 +38,17 @@ func parseReplaceRule(rule string) (*node, *node) {
 type replaceDataBuffer []node
 
 func (dataBuffer *replaceDataBuffer) checkAndSet(current *node, search *node) bool {
-	index := len(*dataBuffer)
+	index := int64(len(*dataBuffer))
 	for i, testnode := range *dataBuffer {
-		if current.equal(&testnode) {
-			index = i
+		if current.equalDeep(&testnode) {
+			index = int64(i)
 			break
 		}
 	}
 
-	id := int(search.data[0]) - '0'
-	if id >= len(*dataBuffer) {
+	id, err := strconv.ParseInt(string(search.data[0]), 10, 64)
+	handelError(err)
+	if id >= int64(len(*dataBuffer)) {
 		*dataBuffer = append(*dataBuffer, *current)
 	}
 
@@ -71,18 +65,18 @@ func replace(search *node, replace *node) simpPattern {
 			dataBuffer := &replaceDataBuffer{}
 			setReplaceDataBuffer(root, search, dataBuffer)
 
-			newRoot := replace.copy()
-			replaceNodes(newRoot, replace, dataBuffer)
+			newRoot := replace.copyDeep()
+			replaceNodes(newRoot, dataBuffer)
 			return newRoot
 		},
 	}
 }
 func checkReplace(current *node, search *node, dataBuffer *replaceDataBuffer) bool {
-	if len(search.childs) != len(current.childs) {
+	if len(search.childs) > len(current.childs) {
 		return false
 	}
-	for i, child := range current.childs {
-		if !checkReplace(child, search.childs[i], dataBuffer) {
+	for i, searchChild := range search.childs {
+		if !checkReplace(current.childs[i], searchChild, dataBuffer) {
 			return false
 		}
 	}
@@ -106,26 +100,22 @@ func checkReplace(current *node, search *node, dataBuffer *replaceDataBuffer) bo
 	return true
 }
 func setReplaceDataBuffer(current *node, search *node, dataBuffer *replaceDataBuffer) {
-	for i, child := range current.childs {
-		setReplaceDataBuffer(child, search.childs[i], dataBuffer)
+	for i, searchChild := range search.childs {
+		setReplaceDataBuffer(current.childs[i], searchChild, dataBuffer)
 	}
 
 	if search.hasFlag(flagRulePart) {
 		dataBuffer.checkAndSet(current, search)
 	}
 }
-func replaceNodes(current *node, replacement *node, dataBuffer *replaceDataBuffer) {
-	for i, child := range current.childs {
-		replaceNodes(child, replacement.childs[i], dataBuffer)
+func replaceNodes(current *node, dataBuffer *replaceDataBuffer) {
+	for _, child := range current.childs {
+		replaceNodes(child, dataBuffer)
 	}
 
-	childs := current.childs
-	if replacement.hasFlag(flagRulePart) {
-		id := int(replacement.dataNumber)
-
+	if current.hasFlag(flagRulePart) {
+		id, err := strconv.ParseInt(string(current.data[0]), 10, 32)
+		handelError(err)
 		*current = (*dataBuffer)[id]
-	} else {
-		*current = *replacement
 	}
-	current.childs = childs
 }

@@ -14,4 +14,84 @@ func TestSolve(t *testing.T) {
 	if term.root.dataNumber != 8 {
 		t.Error("Fail")
 	}
+
+	term, err = parseTerm("a = 4 - 4")
+	if err != nil {
+		t.Error(err)
+	}
+	simplifyRoot(term.root)
+
+	if term.root.dataNumber != 0 {
+		t.Error("Fail")
+	}
+
+	term, err = parseTerm("a = 4 * 4")
+	if err != nil {
+		t.Error(err)
+	}
+	simplifyRoot(term.root)
+
+	if term.root.dataNumber != 16 {
+		t.Error("Fail")
+	}
+
+	term, err = parseTerm("a = 4 / 4")
+	if err != nil {
+		t.Error(err)
+	}
+	simplifyRoot(term.root)
+
+	if term.root.dataNumber != 1 {
+		t.Error("Fail")
+	}
+
+	term, err = parseTerm("a = 4 + 4 + 4")
+	if err != nil {
+		t.Error(err)
+	}
+	simplifyRoot(term.root)
+
+	if term.root.dataNumber != 12 {
+		t.Error("Fail")
+	}
+
+	term, err = parseTerm("a = 4 + 4 - 4")
+	if err != nil {
+		t.Error(err)
+	}
+	simplifyRoot(term.root)
+
+	if term.root.dataNumber != 4 {
+		t.Error("Fail")
+	}
+
+	term, err = parseTerm("a = 4 + 4 * 4")
+	if err != nil {
+		t.Error(err)
+	}
+	simplifyRoot(term.root)
+
+	if term.root.dataNumber != 20 {
+		t.Error("Fail")
+	}
+
+	term, err = parseTerm("a = 4 + 4 / 4")
+	if err != nil {
+		t.Error(err)
+	}
+	simplifyRoot(term.root)
+
+	if term.root.dataNumber != 5 {
+		t.Error("Fail")
+	}
+
+	term, err = parseTerm("a = sin 4")
+	if err != nil {
+		t.Error(err)
+	}
+	simplifyRoot(term.root)
+
+	if term.root.dataNumber != 1 {
+		t.Error("Fail")
+	}
 }

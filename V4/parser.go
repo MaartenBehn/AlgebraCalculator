@@ -16,6 +16,18 @@ const (
 	rankTermEnd         = 20
 )
 
+func initParser() {
+	parseReplaceFuncs = append(parseReplaceFuncs,
+		func(text string) *parserNode { return tryParseNumber(text) },
+		func(text string) *parserNode { return tryParseReplaceRulePart(text) },
+		func(text string) *parserNode { return tryParseOperator2(text, "+", rankAddSub) },
+		func(text string) *parserNode { return tryParseOperator2(text, "-", rankAddSub) },
+		func(text string) *parserNode { return tryParseOperator2(text, "*", rankMul) },
+		func(text string) *parserNode { return tryParseOperator2(text, "/", rankMul) },
+		func(text string) *parserNode { return tryParseOperator2(text, "pow", rankPow) },
+	)
+}
+
 type parserNode struct {
 	*node
 	parserChilds []*parserNode
@@ -44,6 +56,14 @@ func (p *parserNode) updateChilds() {
 	}
 }
 
+func tryParseOperator1(text string, name string, rank int) *parserNode {
+	if text != name {
+		return nil
+	}
+
+	node := NewParserNode(rank, 1, 1, NewNode(name, 0, flagAction, flagOperator1))
+	return node
+}
 func tryParseOperator2(text string, name string, rank int) *parserNode {
 	if text != name {
 		return nil
@@ -53,12 +73,10 @@ func tryParseOperator2(text string, name string, rank int) *parserNode {
 	return node
 }
 func tryParseNumber(text string) *parserNode {
-	if !isNumber(text) {
-		return nil
-	}
-
-	if x, err := strconv.ParseFloat(text, 64); !handelError(err) {
-		return NewParserNode(rankTermEnd, 0, 0, NewNode(text, x, flagData, flagNumber))
+	if isNumber(text) {
+		if x, err := strconv.ParseFloat(text, 64); !handelError(err) {
+			return NewParserNode(rankTermEnd, 0, 0, NewNode(text, x, flagData, flagNumber))
+		}
 	}
 	return nil
 }
@@ -76,20 +94,23 @@ func tryParseVaraible(text string) *parserNode {
 
 func tryParseReplaceRulePart(text string) *parserNode {
 	parts := splitAny(text, "_")
-	if len(parts) != 2 {
-		return nil
+	if len(parts) == 2 {
+		switch parts[0] {
+		case "all":
+			return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagRulePart))
+			/* Currently not used so I comment it out but it should work wehn commented in.
+			case "data":
+				return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagData, flagRulePart))
+			case "num":
+				return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagNumber, flagRulePart))
+			case "var":
+				return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagVariable, flagRulePart))
+			case "const":
+				return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagConstant, flagRulePart))
+			*/
+		}
 	}
 
-	switch parts[0] {
-	case "data":
-		return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagData, flagRulePart))
-	case "num":
-		return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagNumber, flagRulePart))
-	case "var":
-		return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagVariable, flagRulePart))
-	case "const":
-		return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagConstant, flagRulePart))
-	}
 	return nil
 }
 
@@ -194,6 +215,7 @@ func addParsedNode(newNode *parserNode, root **parserNode, current **parserNode)
 			// We need to look higher in the tree.
 			*current = partent
 			addParsedNode(newNode, root, current)
+
 		}
 	}
 }

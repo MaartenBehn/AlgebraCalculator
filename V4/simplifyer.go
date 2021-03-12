@@ -21,24 +21,16 @@ func simplifyRoot(root *node) {
 
 	}
 }
-func (p *simpPattern) trySimpPattern(root *node) bool {
-	match := p.matchtSimpPattern(root)
-	if match == nil {
-		return false
-	}
-	newRoot := p.apply(match)
-	*root = *newRoot
-	return true
-}
-func (p *simpPattern) matchtSimpPattern(node *node) *node {
+func (p *simpPattern) trySimpPattern(node *node) bool {
 	if p.pattern(node) {
-		return node
+		newNode := p.apply(node)
+		*node = *newNode
+		return true
 	}
 	for _, child := range node.childs {
-		match := p.matchtSimpPattern(child)
-		if match != nil {
-			return match
+		if p.trySimpPattern(child) {
+			return true
 		}
 	}
-	return nil
+	return false
 }

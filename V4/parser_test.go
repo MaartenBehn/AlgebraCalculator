@@ -69,4 +69,39 @@ func TestParseRoot(t *testing.T) {
 		root.childs[0].childs[1].childs[0].data != "*" {
 		t.Error("Failed")
 	}
+
+	root, _, err = parseRoot(parseTermFuncs, "4", "-", "2")
+	if err != nil {
+		t.Error(err)
+	}
+	if root.data != "-" {
+		t.Error("Failed")
+	}
+
+	root, _, err = parseRoot(parseTermFuncs, "4", "*", "2")
+	if err != nil {
+		t.Error(err)
+	}
+	if root.data != "*" {
+		t.Error("Failed")
+	}
+
+	root, _, err = parseRoot(parseTermFuncs, "4", "/", "2")
+	if err != nil {
+		t.Error(err)
+	}
+	if root.data != "/" {
+		t.Error("Failed")
+	}
+
+	root, _, err = parseRoot(parseTermFuncs, "t")
+	if err == nil {
+		t.Error("Fail")
+	}
+
+	root, _, err = parseRoot(parseTermFuncs, "(", "t", ")")
+	if err == nil {
+		t.Error("Fail")
+	}
+
 }
