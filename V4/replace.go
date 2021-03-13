@@ -16,9 +16,57 @@ func initReplace() {
 	)
 
 	ruleStrings := []string{
+		// All vars should have x * var
+		//"all_0 + data_1 = all_0 + 1 * data_1",
+		//"data_0 + all_1 = 1 * data_0 + all_1",
+
+		// Fix wrong Brace order
+		"all_0i + ( all_1i + all_2i ) = all_0i + all_1i + all_2i",
+		"all_0i * ( all_1i * all_2i ) = all_0i * all_1i * all_2i",
+
+		// Remove Division
+		"all_0 / num_1 = 1 / num_1 * all_0",
+		"all_0 / all_1 = all_0 * all_1 pow -1",
+
+		//Remove Subtraction
+		"all_0 - all_1 = all_0 + -1 * all_1",
+
+		// Brackte Rules:
 		"( all_0 + all_0 ) * ( all_0 + all_0 ) = 4 * all_0 pow 2",
-		"( all_0 + all_1 ) * ( all_0 + all_1 ) = all_0 pow 2 + all_1 pow 2 + 2 * all_0 * all_1",
-		"all_0 + all_0 = 2 * all_0",
+
+		// - Two
+		"( all_0 + all_1 ) pow 2 = ( all_0 + all_1 ) * ( all_0 + all_1 )",
+		"( all_0 - all_1 ) pow 2 = ( all_0 - all_1 ) * ( all_0 - all_1 )",
+
+		"( all_0i + all_1i ) * ( all_0i + all_1i ) = all_0 pow 2 + all_1 pow 2 + 2 * all_0 * all_1",
+		"( all_0i + all_1i ) * ( all_1i + all_0i ) = all_0 pow 2 + all_1 pow 2 + 2 * all_0 * all_1",
+
+		"( all_0i + all_1i ) * ( all_0i - all_1i ) = all_0 pow 2 - all_1 pow 2",
+		"( all_0i + all_1i ) * ( all_1i - all_0i ) = all_1 pow 2 - all_0 pow 2",
+
+		"( all_0i - all_1i ) * ( all_0i + all_1i ) = all_0 pow 2 - all_1 pow 2",
+		"( all_0i - all_1i ) * ( all_1i + all_0i ) = all_1 pow 2 - all_0 pow 2",
+
+		"( all_0i - all_1i ) * ( all_0i - all_1i ) = all_0 pow 2 + all_1 pow 2 - 2 * all_0 * all_1",
+		"( all_0i - all_1i ) * ( all_1i - all_0i ) = all_0 pow 2 + all_1 pow 2 - 2 * all_0 * all_1",
+
+		// - Four
+		"( all_0i + all_1i ) * ( all_2i + all_3i ) = all_0 * all_2 + all_1 * all_2 + all_0 * all_3 + all_1 * all_3",
+		"( all_0i + all_1i ) * ( all_2i - all_3i ) = all_0 * all_2 + all_1 * all_2 - all_0 * all_3 - all_1 * all_3",
+		"( all_0i - all_1i ) * ( all_2i + all_3i ) = all_0 * all_2 - all_1 * all_2 + all_0 * all_3 - all_1 * all_3",
+		"( all_0i - all_1i ) * ( all_2i - all_3i ) = all_0 * all_2 - all_1 * all_2 - all_0 * all_3 - all_1 * all_3",
+
+		// - Three
+		"all_0i * ( all_1i + all_2i ) = all_0 * all_1 + all_0 * all_2",
+		"all_0i * ( all_1i - all_2i ) = all_0 * all_1 - all_0 * all_2",
+		"( all_0i + all_1i ) * all_2i = all_2 * all_0 + all_2 * all_1",
+		"( all_0i - all_1i ) * all_2i = all_2 * all_0 - all_2 * all_1",
+
+		// Delete Rules:
+		"0 + all_0 = all_0",
+		"0 * all_0 = 0",
+		"all_0 - all_0 = 0",
+		"all_0 / 1 = all_0",
 	}
 
 	for _, ruleString := range ruleStrings {

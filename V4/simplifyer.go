@@ -16,6 +16,7 @@ func simplifyRoot(root *node) {
 			match := pattern.trySimpPattern(root)
 			if match {
 				found = true
+				break
 			}
 		}
 	}

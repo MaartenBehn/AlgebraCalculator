@@ -102,16 +102,15 @@ func tryParseReplaceRulePart(text string) *parserNode {
 		switch parts[0] {
 		case "all":
 			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagRulePart))
-			/* Currently not used so I comment it out but it should work wehn commented in.
-			case "data":
-				return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagData, flagRulePart))
-			case "num":
-				return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagNumber, flagRulePart))
-			case "var":
-				return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagVariable, flagRulePart))
-			case "const":
-				return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagConstant, flagRulePart))
-			*/
+		case "data":
+			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagData, flagRulePart))
+		case "num":
+			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagNumber, flagRulePart))
+		case "var":
+			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagVariable, flagRulePart))
+		case "const":
+			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagConstant, flagRulePart))
+
 		}
 	}
 

@@ -93,12 +93,12 @@ func TestParseRoot(t *testing.T) {
 	}
 
 	root, _, err = parseRoot(parseTermFuncs, "t")
-	if err != nil {
-		t.Error(err)
+	if err == nil {
+		t.Error("fail")
 	}
 
 	root, _, err = parseRoot(parseTermFuncs, "(", "t", ")")
-	if err != nil {
-		t.Error(err)
+	if err == nil {
+		t.Error("fail")
 	}
 }
