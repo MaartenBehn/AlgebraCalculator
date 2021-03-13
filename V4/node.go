@@ -1,5 +1,10 @@
 package V4
 
+import (
+	"AlgebraCalculator/log"
+	"math"
+)
+
 const (
 	flagNone     = 0
 	flagRoot     = 1
@@ -31,7 +36,7 @@ type node struct {
 	flagValues [flagMax]bool
 }
 
-func NewNode(data string, dataNumber float64, flags ...int) *node {
+func newNode(data string, dataNumber float64, flags ...int) *node {
 	node := &node{
 		data:       data,
 		dataNumber: dataNumber,
@@ -87,11 +92,42 @@ func (n *node) equalDeep(reference *node) bool {
 	return true
 }
 func (n *node) copyDeep() *node {
-	copy := NewNode(n.data, n.dataNumber)
+	copy := newNode(n.data, n.dataNumber)
 	copy.flagValues = n.flagValues
 
 	for _, child := range n.childs {
 		copy.childs = append(copy.childs, child.copyDeep())
 	}
 	return copy
+}
+
+func (n *node) print() {
+
+	if n.hasFlag(flagBracketRoot) {
+		log.Print("(")
+	}
+	if n.hasFlag(flagOperator2) {
+		n.childs[0].print()
+		log.Printf(" %s ", n.data)
+		n.childs[1].print()
+	} else {
+		if n.hasFlag(flagNumber) {
+			if n.dataNumber == math.Trunc(n.dataNumber) {
+				log.Printf("%.0f", n.dataNumber)
+			} else {
+				log.Printf("%.4f", n.dataNumber)
+			}
+		} else {
+			log.Print(n.data)
+		}
+
+		for _, child := range n.childs {
+			log.Print(" ")
+			child.print()
+		}
+	}
+
+	if n.hasFlag(flagBracketRoot) {
+		log.Print(")")
+	}
 }

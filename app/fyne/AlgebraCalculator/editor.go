@@ -1,7 +1,7 @@
 package main
 
 import (
-	"AlgebraCalculator"
+	"AlgebraCalculator/V4"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
@@ -18,7 +18,7 @@ func NewEditor() *Editor {
 
 	header := container.NewBorder(nil, nil, nil,
 		container.NewHBox(
-			widget.NewButton("Clear All", (e).clearAll),
+			widget.NewButton("Clear All", e.clearAll),
 			widget.NewButton("Log", func() {
 				changeContent(log.content)
 			}),
@@ -30,46 +30,34 @@ func NewEditor() *Editor {
 
 	e.content = container.NewBorder(header, nil, nil, nil, scroll)
 
-	e.addItem()
+	e.update()
 
 	return e
 }
 
-func (e *Editor) addItem() {
-	editorItem := NewEditorItem(e)
-	e.list.Add(editorItem.content)
-	e.items = append(e.items, editorItem)
-}
-
-func (e *Editor) removeItem(editorItem *EditorItem) {
-	e.list.Remove(editorItem.content)
-
-	var index int
-	for i, item := range e.items {
-		if item == editorItem {
-			index = i
-			break
-		}
-	}
-	e.items = append(e.items[:index], e.items[index+1:]...)
-}
-
 func (e *Editor) update() {
-	if e.items[len(e.items)-1].getText() != "" {
-		e.addItem()
+	if len(e.items) == 0 || e.items[len(e.items)-1].getText() != "" {
+		e.items = append(e.items, NewEditorItem(e))
 	}
 
-	results, logged := AlgebraCalculator.Run(e.getAllTexts()...)
+	var items []fyne.CanvasObject
+	for _, item := range e.items {
+		items = append(items, item.content)
+	}
+	e.list.Objects = items
 
+	result := V4.Calculate(e.getAllTexts()...)
 	for i, item := range e.items {
-		if results[i] == "" {
+		if result.TermStrings[i] == "" {
 			item.setResult("")
 		} else {
-			item.setResult(results[i])
+			item.setResult(result.TermStrings[i])
 		}
 	}
 
-	log.setTexts(logged)
+	if log != nil {
+		log.setTexts(result.Log)
+	}
 }
 
 func (e *Editor) getAllTexts() []string {
@@ -81,8 +69,6 @@ func (e *Editor) getAllTexts() []string {
 }
 
 func (e *Editor) clearAll() {
-	for _, item := range e.items {
-		e.removeItem(item)
-	}
-	e.addItem()
+	e.items = []*EditorItem{}
+	e.update()
 }

@@ -33,7 +33,6 @@ func NewEditorItem(editor *Editor) *EditorItem {
 
 func (e *EditorItem) setText(text string) {
 	e.entry.SetText(text)
-	e.onChange(text)
 }
 
 func (e *EditorItem) getText() string {
@@ -53,5 +52,12 @@ func (e *EditorItem) onClose() {
 		e.setText("")
 		return
 	}
-	e.editor.removeItem(e)
+	index := 0
+	for i, item := range e.editor.items {
+		if e == item {
+			index = i
+		}
+	}
+	e.editor.items = append(e.editor.items[:index], e.editor.items[index+1:]...)
+	e.editor.update()
 }

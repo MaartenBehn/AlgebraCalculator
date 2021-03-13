@@ -33,8 +33,6 @@ var testTerms = []struct {
 }
 
 func TestReplace(t *testing.T) {
-	Init()
-
 	for _, testTerm := range testTerms {
 		term, err := parseTerm(testTerm.term)
 		if err != nil {

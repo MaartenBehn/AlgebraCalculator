@@ -5,6 +5,16 @@ import "strconv"
 var parseReplaceFuncs []func(text string) *parserNode
 
 func initReplace() {
+	parseReplaceFuncs = append(parseReplaceFuncs,
+		func(text string) *parserNode { return tryParseNumber(text) },
+		func(text string) *parserNode { return tryParseReplaceRulePart(text) },
+		func(text string) *parserNode { return tryParseOperator2(text, "+", rankAddSub) },
+		func(text string) *parserNode { return tryParseOperator2(text, "-", rankAddSub) },
+		func(text string) *parserNode { return tryParseOperator2(text, "*", rankMul) },
+		func(text string) *parserNode { return tryParseOperator2(text, "/", rankMul) },
+		func(text string) *parserNode { return tryParseOperator2(text, "pow", rankPow) },
+	)
+
 	ruleStrings := []string{
 		"( all_0 + all_0 ) * ( all_0 + all_0 ) = 4 * all_0 pow 2",
 		"( all_0 + all_1 ) * ( all_0 + all_1 ) = all_0 pow 2 + all_1 pow 2 + 2 * all_0 * all_1",

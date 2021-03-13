@@ -35,11 +35,9 @@ func newError(typ string, critical string, text string) *calculatorError {
 func (e calculatorError) Error() string {
 	builder := strings.Builder{}
 	builder.WriteString(e.typ)
-	builder.WriteString(": \"")
+	builder.WriteString(": \" ")
 	builder.WriteString(e.text)
-	builder.WriteString("\" with critical Level: ")
-	builder.WriteString(e.critical)
-	builder.WriteString(" accured!")
+	builder.WriteString(" \" ")
 	return builder.String()
 }
 

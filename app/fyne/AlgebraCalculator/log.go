@@ -44,8 +44,11 @@ func (l *Log) newList(lines []string) {
 	})
 }
 
-func (l *Log) setTexts(text string) {
-	lines := strings.Split(text, "\n")
+func (l *Log) setTexts(texts []string) {
+	var lines []string
+	for _, text := range texts {
+		lines = append(lines, strings.Split(text, "\n")...)
+	}
 	if len(lines) == 1 && lines[0] == "" {
 		lines = []string{"No Log"}
 	}

@@ -16,18 +16,6 @@ const (
 	rankTermEnd         = 20
 )
 
-func initParser() {
-	parseReplaceFuncs = append(parseReplaceFuncs,
-		func(text string) *parserNode { return tryParseNumber(text) },
-		func(text string) *parserNode { return tryParseReplaceRulePart(text) },
-		func(text string) *parserNode { return tryParseOperator2(text, "+", rankAddSub) },
-		func(text string) *parserNode { return tryParseOperator2(text, "-", rankAddSub) },
-		func(text string) *parserNode { return tryParseOperator2(text, "*", rankMul) },
-		func(text string) *parserNode { return tryParseOperator2(text, "/", rankMul) },
-		func(text string) *parserNode { return tryParseOperator2(text, "pow", rankPow) },
-	)
-}
-
 type parserNode struct {
 	*node
 	parserChilds []*parserNode
@@ -36,7 +24,7 @@ type parserNode struct {
 	maxChilds    int
 }
 
-func NewParserNode(rank int, maxChilds int, minChilds int, node *node) *parserNode {
+func newParserNode(rank int, maxChilds int, minChilds int, node *node) *parserNode {
 	return &parserNode{
 		node: node,
 
@@ -55,13 +43,29 @@ func (p *parserNode) updateChilds() {
 		p.childs[i] = child.node
 	}
 }
+func (p *parserNode) check() error {
+	for _, child := range p.parserChilds {
+		err := child.check()
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(p.parserChilds) < p.minChilds {
+		return newError(errorTypParsing, errorCriticalLevelPartial, "Node: \""+p.data+"\" has not enought children!")
+	}
+	if len(p.parserChilds) > p.maxChilds {
+		return newError(errorTypParsing, errorCriticalLevelPartial, "Node: \""+p.data+"\" has to many children!")
+	}
+	return nil
+}
 
 func tryParseOperator1(text string, name string, rank int) *parserNode {
 	if text != name {
 		return nil
 	}
 
-	node := NewParserNode(rank, 1, 1, NewNode(name, 0, flagAction, flagOperator1))
+	node := newParserNode(rank, 1, 1, newNode(name, 0, flagAction, flagOperator1))
 	return node
 }
 func tryParseOperator2(text string, name string, rank int) *parserNode {
@@ -69,13 +73,13 @@ func tryParseOperator2(text string, name string, rank int) *parserNode {
 		return nil
 	}
 
-	node := NewParserNode(rank, 2, 2, NewNode(name, 0, flagAction, flagOperator2))
+	node := newParserNode(rank, 2, 2, newNode(name, 0, flagAction, flagOperator2))
 	return node
 }
 func tryParseNumber(text string) *parserNode {
 	if isNumber(text) {
 		if x, err := strconv.ParseFloat(text, 64); !handelError(err) {
-			return NewParserNode(rankTermEnd, 0, 0, NewNode(text, x, flagData, flagNumber))
+			return newParserNode(rankTermEnd, 0, 0, newNode(text, x, flagData, flagNumber))
 		}
 	}
 	return nil
@@ -86,7 +90,7 @@ var currentVariables []*node
 func tryParseVaraible(text string) *parserNode {
 	for _, variable := range currentVariables {
 		if text == variable.data {
-			return NewParserNode(rankTermEnd, 0, 0, NewNode(text, 0, flagData, flagVariable))
+			return newParserNode(rankTermEnd, 0, 0, newNode(text, 0, flagData, flagVariable))
 		}
 	}
 	return nil
@@ -97,16 +101,16 @@ func tryParseReplaceRulePart(text string) *parserNode {
 	if len(parts) == 2 {
 		switch parts[0] {
 		case "all":
-			return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagRulePart))
+			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagRulePart))
 			/* Currently not used so I comment it out but it should work wehn commented in.
 			case "data":
-				return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagData, flagRulePart))
+				return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagData, flagRulePart))
 			case "num":
-				return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagNumber, flagRulePart))
+				return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagNumber, flagRulePart))
 			case "var":
-				return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagVariable, flagRulePart))
+				return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagVariable, flagRulePart))
 			case "const":
-				return NewParserNode(rankTermEnd, 0, 0, NewNode(parts[1], 0, flagConstant, flagRulePart))
+				return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagConstant, flagRulePart))
 			*/
 		}
 	}
@@ -115,9 +119,9 @@ func tryParseReplaceRulePart(text string) *parserNode {
 }
 
 func parseRoot(parseFuncs []func(text string) *parserNode, parts ...string) (*parserNode, int, error) {
-	rootVar := NewParserNode(0, 1, 1, NewNode("", 0))
+	rootVar := newParserNode(0, 1, 1, newNode("", 0))
 	root := &rootVar
-	currentVar := NewParserNode(0, 1, 1, NewNode("", 0))
+	currentVar := newParserNode(0, 1, 1, newNode("", 0))
 	current := &currentVar
 
 	var i int
@@ -148,6 +152,11 @@ func parseRoot(parseFuncs []func(text string) *parserNode, parts ...string) (*pa
 		}
 
 		addParsedNode(node, root, current)
+	}
+
+	err := (*root).check()
+	if err != nil {
+		return *root, i, err
 	}
 
 	(*root).updateChilds()

@@ -18,7 +18,6 @@ func simplifyRoot(root *node) {
 				found = true
 			}
 		}
-
 	}
 }
 func (p *simpPattern) trySimpPattern(node *node) bool {

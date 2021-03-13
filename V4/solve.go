@@ -42,7 +42,7 @@ func solveOperator1(name string, function func(x float64) float64) simpPattern {
 				root.childs[0].hasFlag(flagNumber)
 		},
 		func(root *node) *node {
-			node := NewNode("", function(root.childs[0].dataNumber), flagData, flagNumber)
+			node := newNode("", function(root.childs[0].dataNumber), flagData, flagNumber)
 			return node
 		},
 	}
@@ -56,7 +56,7 @@ func solveOperator2(name string, function func(x float64, y float64) float64) si
 				root.childs[1].hasFlag(flagNumber)
 		},
 		func(root *node) *node {
-			node := NewNode("", function(root.childs[0].dataNumber, root.childs[1].dataNumber), flagData, flagNumber)
+			node := newNode("", function(root.childs[0].dataNumber, root.childs[1].dataNumber), flagData, flagNumber)
 			return node
 		},
 	}
@@ -72,9 +72,9 @@ func solveOperator2Edge(name string, function func(x float64, y float64) float64
 				root.childs[0].childs[1].hasFlag(flagNumber)
 		},
 		func(root *node) *node {
-			node := NewNode("", 0, flagData, flagNumber)
+			node := newNode("", 0, flagData, flagNumber)
 			node.dataNumber = function(root.childs[0].childs[1].dataNumber, root.childs[1].dataNumber)
-			edge := NewNode(name, 0, flagAction, flagOperator2)
+			edge := newNode(name, 0, flagAction, flagOperator2)
 			edge.setChilds(root.childs[0].childs[0], node)
 			return edge
 		},
