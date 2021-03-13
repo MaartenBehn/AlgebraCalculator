@@ -8,49 +8,52 @@ import (
 	"strings"
 )
 
-type Log struct {
-	content fyne.CanvasObject
-	list    *widget.List
-	data    binding.StringList
+type logPanel struct {
+	*panel
+	list *widget.List
+	data binding.StringList
 }
 
-func NewLog() *Log {
-	l := &Log{}
+func newLogPanel(editor *editorPanel) *logPanel {
+	l := &logPanel{panel: newPanel()}
 	l.data = binding.NewStringList()
 
-	header := container.NewBorder(nil, nil, nil,
+	headerMobile := container.NewBorder(nil, nil, nil,
 		container.NewHBox(
 			widget.NewButton("Back", func() {
-				changeContent(editor.content)
+				changeContent(editor.content[layoutMobile])
 			}),
 		),
 	)
 
 	l.newList(nil)
-	l.content = container.NewBorder(header, nil, nil, nil, l.list)
+	l.content[layoutDesktop] = l.list
+	l.content[layoutMobile] = container.NewBorder(headerMobile, nil, nil, nil, l.list)
 	return l
 }
+func (l *logPanel) newList(lines []string) {
+	err := l.data.Set(lines)
+	if err != nil {
+		panic(err)
+	}
 
-func (l *Log) newList(lines []string) {
-	l.data.Set(lines)
 	l.list = widget.NewListWithData(l.data, func() fyne.CanvasObject {
 		return widget.NewLabel("")
 	}, func(item binding.DataItem, object fyne.CanvasObject) {
 		text, err := item.(binding.String).Get()
+		recover()
 		if err != nil {
-			panic(err)
+			return
 		}
+
 		object.(*widget.Label).Text = text
 	})
 }
 
-func (l *Log) setTexts(texts []string) {
+func (l *logPanel) setTexts(texts []string) {
 	var lines []string
 	for _, text := range texts {
 		lines = append(lines, strings.Split(text, "\n")...)
-	}
-	if len(lines) == 1 && lines[0] == "" {
-		lines = []string{"No Log"}
 	}
 	l.newList(lines)
 }
