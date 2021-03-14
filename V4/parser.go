@@ -1,6 +1,9 @@
 package V4
 
-import "strconv"
+import (
+	"AlgebraCalculator/log"
+	"strconv"
+)
 
 const (
 	rankNone            = 0
@@ -159,6 +162,10 @@ func parseRoot(parseFuncs []func(text string) *parserNode, parts ...string) (*pa
 	}
 
 	(*root).updateChilds()
+
+	log.Print("Parse: \n")
+	(*root).print()
+	log.Print("\n")
 
 	return *root, i, nil
 }

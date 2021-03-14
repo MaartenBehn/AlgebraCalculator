@@ -16,20 +16,10 @@ func initReplace() {
 	)
 
 	ruleStrings := []string{
-		// All vars should have x * var
-		//"all_0 + data_1 = all_0 + 1 * data_1",
-		//"data_0 + all_1 = 1 * data_0 + all_1",
 
 		// Fix wrong Brace order
-		"all_0i + ( all_1i + all_2i ) = all_0i + all_1i + all_2i",
-		"all_0i * ( all_1i * all_2i ) = all_0i * all_1i * all_2i",
-
-		// Remove Division
-		"all_0 / num_1 = 1 / num_1 * all_0",
-		"all_0 / all_1 = all_0 * all_1 pow -1",
-
-		//Remove Subtraction
-		"all_0 - all_1 = all_0 + -1 * all_1",
+		"all_0i + ( all_1i + all_2i ) = all_0 + all_1 + all_2",
+		"all_0i * ( all_1i * all_2i ) = all_0 * all_1 * all_2",
 
 		// Brackte Rules:
 		"( all_0 + all_0 ) * ( all_0 + all_0 ) = 4 * all_0 pow 2",
@@ -67,10 +57,41 @@ func initReplace() {
 		"0 * all_0 = 0",
 		"all_0 - all_0 = 0",
 		"all_0 / 1 = all_0",
+
+		// All vars should have x * var
+		"all_0 + var_1 = all_0 + 1 * var_1",
+		"var_0 + all_1 = 1 * var_0 + all_1",
+
+		// Remove Division
+		"all_0 / num_1 = 1 / num_1 * all_0",
+		"all_0 / all_1 = all_0 * all_1 pow -1",
+
+		//Remove Subtraction
+		"all_0 - all_1 = all_0 + -1 * all_1",
+
+		// Merge Var
+		"num_0 * all_1 + num_2 * all_1 = ( num_0 + num_2 ) * all_1",
+		"all_0 + num_1 * all_2 + num_3 * all_2 = all_0 + ( num_1 + num_3 ) * all_2",
+
+		// Merge Pow
+		"all_0 pow num_1 * all_0 = all_0 pow ( num_1 + 1 )",
+		"all_0 pow num_1 pow num_1 = all_0 pow ( num_1 * 2 )",
+		"all_0 pow num_1 pow num_2 = all_0 pow ( num_1 * num_2 )",
+
+		// Merge Mul
+		"all_0 * all_0 = all_0 pow 2",
+		"all_0 * all_1 * all_1 = all_0 * all_1 pow 2", // Edge
+
+		// Merge Addition
+		"num_0 * all_1 + all_1 = ( num_0 + 1 ) * all_1",
+		"all_0 + num_1 * all_2 + all_2 = all_0 + ( num_1 + 1 ) * all_2", // Edge
+		"all_0 + all_0 = 2 * all_0",
+		"all_0 + all_1 + all_1 = all_0 + 2 * all_1", // Edge
 	}
 
 	for _, ruleString := range ruleStrings {
-		simpPatterns = append(simpPatterns, replace(parseReplaceRule(ruleString)))
+		searchRoot, replaceRoot := parseReplaceRule(ruleString)
+		simpPatterns = append(simpPatterns, replace(searchRoot, replaceRoot, ruleString))
 	}
 }
 
@@ -114,7 +135,7 @@ func (dataBuffer *replaceDataBuffer) checkAndSet(current *node, search *node) bo
 	return debug
 }
 
-func replace(search *node, replace *node) simpPattern {
+func replace(search *node, replace *node, patternString string) simpPattern {
 	return simpPattern{
 		func(root *node) bool {
 			return checkReplace(root, search, &replaceDataBuffer{})
@@ -127,6 +148,7 @@ func replace(search *node, replace *node) simpPattern {
 			replaceNodes(newRoot, dataBuffer)
 			return newRoot
 		},
+		patternString,
 	}
 }
 func checkReplace(current *node, search *node, dataBuffer *replaceDataBuffer) bool {

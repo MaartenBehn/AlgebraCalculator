@@ -2,13 +2,13 @@ package V4
 
 import (
 	"AlgebraCalculator/log"
+	"fmt"
 	"math"
 )
 
 const (
-	flagNone     = 0
-	flagRoot     = 1
-	flagRulePart = 2
+	flagNone = 0
+	flagRoot = 1
 
 	// Basic Types no Children
 	flagData     = 10
@@ -23,8 +23,10 @@ const (
 	flagFraction  = 23
 
 	flagBracketRoot = 30
+	flagRulePart    = 31
 
-	flagMax = 40
+	flagMax      = 40
+	flagOptional = 30
 )
 
 type node struct {
@@ -70,6 +72,10 @@ func (n *node) hasFlag(flag int) bool {
 }
 func (n *node) hasAllFlagsOfNode(reference *node) bool {
 	for flag, flagValue := range reference.flagValues {
+		if flag >= flagOptional {
+			break
+		}
+
 		if flagValue && !n.hasFlag(flag) {
 			return false
 		}
@@ -77,7 +83,15 @@ func (n *node) hasAllFlagsOfNode(reference *node) bool {
 	return true
 }
 func (n *node) equal(reference *node) bool {
-	return n.hasAllFlagsOfNode(reference) && n.data == reference.data && n.dataNumber == reference.dataNumber
+	if !n.hasAllFlagsOfNode(reference) {
+		return false
+	}
+
+	if n.hasFlag(flagNumber) {
+		return n.dataNumber == reference.dataNumber
+	} else {
+		return n.data == reference.data
+	}
 }
 func (n *node) equalDeep(reference *node) bool {
 	if len(n.childs) != len(reference.childs) || !n.equal(reference) {
@@ -99,6 +113,16 @@ func (n *node) copyDeep() *node {
 		copy.childs = append(copy.childs, child.copyDeep())
 	}
 	return copy
+}
+func (n *node) getIdentity() string {
+	return n.data + fmt.Sprintf("%f", n.dataNumber)
+}
+func (n *node) getIdentityDeep() string {
+	identify := n.getIdentity()
+	for _, child := range n.childs {
+		identify += child.getIdentityDeep()
+	}
+	return identify
 }
 
 func (n *node) print() {
@@ -129,5 +153,47 @@ func (n *node) print() {
 
 	if n.hasFlag(flagBracketRoot) {
 		log.Print(")")
+	}
+}
+func (n *node) printTree(indentation int) {
+
+	if n.hasFlag(flagOperator2) {
+		n.childs[0].printTree(indentation + 1)
+
+		log.Print("\n")
+		printIndentation(indentation)
+		log.Printf(" %s ", n.data)
+
+		n.childs[1].printTree(indentation + 1)
+	} else {
+
+		log.Print("\n")
+		printIndentation(indentation)
+		if n.hasFlag(flagNumber) {
+			if n.dataNumber == math.Trunc(n.dataNumber) {
+				log.Printf("%.0f", n.dataNumber)
+			} else {
+				log.Printf("%.4f", n.dataNumber)
+			}
+		} else {
+			log.Print(n.data)
+		}
+
+		for _, child := range n.childs {
+			log.Print(" ")
+			child.printTree(indentation + 1)
+		}
+	}
+}
+func printIndentation(indentation int) {
+	for i := 0; i < indentation; i++ {
+		if i == indentation-1 {
+			log.Print("|> ")
+		} else if i == 0 {
+			log.Print("|  ")
+		} else {
+			log.Print("   ")
+		}
+
 	}
 }

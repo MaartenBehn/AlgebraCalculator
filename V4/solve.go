@@ -45,6 +45,7 @@ func solveOperator1(name string, function func(x float64) float64) simpPattern {
 			node := newNode("", function(root.childs[0].dataNumber), flagData, flagNumber)
 			return node
 		},
+		"solve Op1",
 	}
 }
 func solveOperator2(name string, function func(x float64, y float64) float64) simpPattern {
@@ -59,6 +60,7 @@ func solveOperator2(name string, function func(x float64, y float64) float64) si
 			node := newNode("", function(root.childs[0].dataNumber, root.childs[1].dataNumber), flagData, flagNumber)
 			return node
 		},
+		"solve Op2",
 	}
 }
 func solveOperator2Edge(name string, function func(x float64, y float64) float64) simpPattern {
@@ -78,5 +80,6 @@ func solveOperator2Edge(name string, function func(x float64, y float64) float64
 			edge.setChilds(root.childs[0].childs[0], node)
 			return edge
 		},
+		"solve Op2 Edge",
 	}
 }

@@ -1,48 +1,32 @@
 package V4
 
-import "testing"
+import (
+	"AlgebraCalculator/log"
+	"testing"
+)
 
-var testTerms = []struct {
-	term string
-	test func(root *node) bool
-}{
-	{
-		"a x y = ( x + y ) * ( x + y )",
-		func(root *node) bool {
-			return root.data == "+" && root.childs[0].data == "+" && root.childs[0].childs[0].data == "pow"
-		},
-	},
-	{
-		"a x y = ( x * y + x * y ) * ( x * y + x * y )",
-		func(root *node) bool {
-			return root.data == "*" && root.childs[1].data == "pow"
-		},
-	},
-	{
-		"a t = t + t",
-		func(root *node) bool {
-			return root.data == "*" && root.childs[0].dataNumber == 2 && root.childs[1].data == "t"
-		},
-	},
-	{
-		"a x y = ( x + x ) * ( x + x )",
-		func(root *node) bool {
-			return root.data == "*" && root.childs[1].data == "pow"
-		},
-	},
+var testTerms = []string{
+
+	"a x y = ( x + y ) * ( x + y )",
+	"a x y = ( x * y + x * y ) * ( x * y + x * y )",
+	"a t = t + t",
+	"a x y = ( x + x ) * ( x + x )",
+	"a x y = x + 2 + y - x + 3 + y",
 }
 
 func TestReplace(t *testing.T) {
 	for _, testTerm := range testTerms {
-		term, err := parseTerm(testTerm.term)
+		term, err := parseTerm(testTerm)
 		if err != nil {
 			t.Error(err)
 		}
 		simplifyRoot(term.root)
+		log.PrintLog()
 
-		if !testTerm.test(term.root) {
-			t.Error("Fail")
-		}
+		log.Print("In: " + testTerm + "\nGot: ")
+		term.print()
+		log.Print("\n\n")
+		log.PrintLog()
 	}
 
 }

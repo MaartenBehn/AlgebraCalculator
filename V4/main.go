@@ -8,8 +8,12 @@ func init() {
 	if !initilized {
 		log.InitLog()
 		initTerm()
+
 		initSolve()
+		initSort()
 		initReplace()
+		log.GetLog()
+
 		initilized = true
 	}
 }

@@ -27,6 +27,8 @@ func TestAddParsedNode(t *testing.T) {
 }
 
 func TestParseRoot(t *testing.T) {
+	currentVariables = nil
+
 	root, _, err := parseRoot(parseTermFuncs, "4", "+", "4")
 	if err != nil {
 		t.Error(err)

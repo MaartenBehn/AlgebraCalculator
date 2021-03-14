@@ -22,6 +22,7 @@ func TestPrint(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+		log.PrintLog()
 		term.print()
 
 		log := log.GetLog()
