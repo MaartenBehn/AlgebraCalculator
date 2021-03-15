@@ -7,6 +7,7 @@ import (
 
 var testVectorTerms = []string{
 
+	"a t = ( 1 + t , 2 * t , 4 ) dot ( t , 4 , 4 )",
 	"a = 1 + 2 , 2 + 4",
 	"a = ( 1 , 2 )",
 	"a = ( 1 , 2 ) + ( 1 , 2 )",

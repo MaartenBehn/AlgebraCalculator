@@ -115,7 +115,7 @@ func (n *node) copyDeep() *node {
 	}
 	return copy
 }
-func (n *node) getIdentity() string {
+func (n *node) getIdentity() string { // TODO improve for sorting
 	return n.data + fmt.Sprintf("%f", n.dataNumber)
 }
 func (n *node) getIdentityDeep() string {

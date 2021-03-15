@@ -29,6 +29,8 @@ func initTerm() {
 		func(text string) *parserNode { return tryParseOperator1(text, "atanh", rankMathFunction) },
 		func(text string) *parserNode { return tryParseOperator2(text, "atan2", rankMathFunction) },
 
+		func(text string) *parserNode { return tryParseOperator2(text, "dot", rankMathFunction) },
+
 		func(text string) *parserNode { return tryParseVaraible(text) },
 	)
 }
