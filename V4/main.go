@@ -9,7 +9,9 @@ func init() {
 		log.InitLog()
 		initTerm()
 
+		initSimplifyer()
 		initSolve()
+		initVector()
 		initSort()
 		initReplace()
 		log.GetLog()

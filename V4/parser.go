@@ -1,7 +1,6 @@
 package V4
 
 import (
-	"AlgebraCalculator/log"
 	"strconv"
 )
 
@@ -104,15 +103,15 @@ func tryParseReplaceRulePart(text string) *parserNode {
 	if len(parts) == 2 {
 		switch parts[0] {
 		case "all":
-			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagRulePart))
+			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagRuleData))
 		case "data":
-			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagData, flagRulePart))
+			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagData, flagRuleData))
 		case "num":
-			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagNumber, flagRulePart))
+			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagNumber, flagRuleData))
 		case "var":
-			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagVariable, flagRulePart))
+			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagVariable, flagRuleData))
 		case "const":
-			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagConstant, flagRulePart))
+			return newParserNode(rankTermEnd, 0, 0, newNode(parts[1], 0, flagConstant, flagRuleData))
 
 		}
 	}
@@ -125,6 +124,7 @@ func parseRoot(parseFuncs []func(text string) *parserNode, parts ...string) (*pa
 	root := &rootVar
 	currentVar := newParserNode(0, 1, 1, newNode("", 0))
 	current := &currentVar
+	*current = rootVar
 
 	var i int
 	for i = 0; i < len(parts); i++ {
@@ -140,6 +140,7 @@ func parseRoot(parseFuncs []func(text string) *parserNode, parts ...string) (*pa
 
 			(*subRoot).setFlag(flagBracketRoot, true)
 			(*current).parserChilds = append((*current).parserChilds, subRoot)
+
 			i += index + 1
 			continue
 		}
@@ -162,10 +163,6 @@ func parseRoot(parseFuncs []func(text string) *parserNode, parts ...string) (*pa
 	}
 
 	(*root).updateChilds()
-
-	log.Print("Parse: \n")
-	(*root).print()
-	log.Print("\n")
 
 	return *root, i, nil
 }

@@ -161,9 +161,9 @@ func checkReplace(current *node, search *node, dataBuffer *replaceDataBuffer) bo
 		}
 	}
 
-	if search.hasFlag(flagRulePart) {
+	if search.hasFlag(flagRuleData) {
 		for flag, flagValue := range search.flagValues {
-			if flagValue && !current.hasFlag(flag) && flag != flagRulePart {
+			if flagValue && !current.hasFlag(flag) && flag != flagRuleData {
 				return false
 			}
 		}
@@ -184,7 +184,7 @@ func setReplaceDataBuffer(current *node, search *node, dataBuffer *replaceDataBu
 		setReplaceDataBuffer(current.childs[i], searchChild, dataBuffer)
 	}
 
-	if search.hasFlag(flagRulePart) {
+	if search.hasFlag(flagRuleData) {
 		dataBuffer.checkAndSet(current, search)
 	}
 }
@@ -193,7 +193,7 @@ func replaceNodes(current *node, dataBuffer *replaceDataBuffer) {
 		replaceNodes(child, dataBuffer)
 	}
 
-	if current.hasFlag(flagRulePart) {
+	if current.hasFlag(flagRuleData) {
 		id, err := strconv.ParseInt(string(current.data[0]), 10, 32)
 		handelError(err)
 		*current = (*dataBuffer)[id]

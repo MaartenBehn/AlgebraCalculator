@@ -7,12 +7,13 @@ var parseTermFuncs []func(text string) *parserNode
 func initTerm() {
 	parseTermFuncs = append(parseTermFuncs,
 		func(text string) *parserNode { return tryParseNumber(text) },
-		func(text string) *parserNode { return tryParseVaraible(text) },
+
 		func(text string) *parserNode { return tryParseOperator2(text, "+", rankAddSub) },
 		func(text string) *parserNode { return tryParseOperator2(text, "-", rankAddSub) },
 		func(text string) *parserNode { return tryParseOperator2(text, "*", rankMul) },
 		func(text string) *parserNode { return tryParseOperator2(text, "/", rankMul) },
 		func(text string) *parserNode { return tryParseOperator2(text, "pow", rankPow) },
+		func(text string) *parserNode { return tryParseOperator2(text, ",", rankAppend) },
 
 		func(text string) *parserNode { return tryParseOperator1(text, "sin", rankMathFunction) },
 		func(text string) *parserNode { return tryParseOperator1(text, "sinh", rankMathFunction) },
@@ -27,6 +28,8 @@ func initTerm() {
 		func(text string) *parserNode { return tryParseOperator1(text, "atan", rankMathFunction) },
 		func(text string) *parserNode { return tryParseOperator1(text, "atanh", rankMathFunction) },
 		func(text string) *parserNode { return tryParseOperator2(text, "atan2", rankMathFunction) },
+
+		func(text string) *parserNode { return tryParseVaraible(text) },
 	)
 }
 
@@ -86,6 +89,10 @@ func parseTerm(text string) (*term, error) {
 	if handelError(err) {
 		return nil, newError(errorTypParsing, errorCriticalLevelPartial, "term could not be parsed!")
 	}
+
+	log.Print("Parse: \n")
+	root.print()
+	log.Print("\n")
 
 	t := newTerm(parts1[0])
 	t.variables = variables

@@ -2,6 +2,20 @@ package V4
 
 import "AlgebraCalculator/log"
 
+func initSimplifyer() {
+	simpPatterns = append(simpPatterns,
+		simpPattern{
+			func(root *node) bool {
+				return root.hasFlag(flagNone) && len(root.childs) == 1
+			},
+			func(root *node) *node {
+				return root.childs[0]
+			},
+			"remove none nodes",
+		},
+	)
+}
+
 var simpPatterns []simpPattern
 
 type simpPattern struct {
@@ -29,7 +43,7 @@ func simplifyRoot(root *node) {
 }
 func (p *simpPattern) trySimpPattern(node *node) bool {
 	if p.pattern(node) {
-		log.Println("Pattern: " + p.patternString)
+		log.Println("\nPattern: " + p.patternString)
 		newNode := p.apply(node)
 		*node = *newNode
 		return true

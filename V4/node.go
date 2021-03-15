@@ -10,7 +10,7 @@ const (
 	flagNone = 0
 	flagRoot = 1
 
-	// Basic Types no Children
+	// Data Types no Children
 	flagData     = 10
 	flagNumber   = 11
 	flagConstant = 12
@@ -21,9 +21,10 @@ const (
 	flagOperator1 = 21
 	flagOperator2 = 22
 	flagFraction  = 23
+	flagVector    = 24
 
 	flagBracketRoot = 30
-	flagRulePart    = 31
+	flagRuleData    = 31
 
 	flagMax      = 40
 	flagOptional = 30
@@ -130,7 +131,18 @@ func (n *node) print() {
 	if n.hasFlag(flagBracketRoot) {
 		log.Print("(")
 	}
-	if n.hasFlag(flagOperator2) {
+	if n.hasFlag(flagVector) {
+
+		log.Print("(")
+		for i, child := range n.childs {
+			if i != 0 {
+				log.Print(", ")
+			}
+			child.print()
+		}
+		log.Print(")")
+
+	} else if n.hasFlag(flagOperator2) {
 		n.childs[0].print()
 		log.Printf(" %s ", n.data)
 		n.childs[1].print()
