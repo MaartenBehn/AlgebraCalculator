@@ -20,6 +20,7 @@ func initVector() {
 		vectorApplyScalar("*"),
 
 		vectorOperator2("dot", dot),
+		vectorOperator1("len", magnitude),
 	)
 }
 
@@ -145,6 +146,29 @@ func dot(x *node, y *node) *node {
 	for i := len(x.childs) - 1; i >= 0; i-- {
 		mul := newNode("*", 0, flagAction, flagOperator2)
 		mul.setChilds(x.childs[i], y.childs[i])
+
+		(*current).childs = append((*current).childs, mul)
+		if i > 1 {
+			current = &((*current).childs[0])
+		}
+	}
+
+	return result
+}
+
+func magnitude(x *node) *node {
+	result := newNode("sqrt", 0, flagAction, flagOperator1)
+	current := &result
+
+	for i := 2; i < len(x.childs); i++ {
+		(*current).setChilds(newNode("+", 0, flagAction, flagOperator2))
+		current = &((*current).childs[0])
+	}
+
+	current = &result
+	for i := len(x.childs) - 1; i >= 0; i-- {
+		mul := newNode("pow", 0, flagAction, flagOperator2)
+		mul.setChilds(x.childs[i], newNode("", 2, flagData, flagNumber))
 
 		(*current).childs = append((*current).childs, mul)
 		if i > 1 {
