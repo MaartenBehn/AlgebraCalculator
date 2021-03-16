@@ -34,7 +34,12 @@ func initTerm() {
 		func(text string) *parserNode { return tryParseOperator1(text, "len", rankMathFunction) },
 		func(text string) *parserNode { return tryParseOperator2(text, "dist", rankMathFunction) },
 
+		func(text string) *parserNode { return tryParseTerm(text) },
 		func(text string) *parserNode { return tryParseVaraible(text) },
+	)
+
+	simpPatterns = append(simpPatterns,
+		insertTerm(),
 	)
 }
 
@@ -103,4 +108,40 @@ func parseTerm(text string) (*term, error) {
 	t.variables = variables
 	t.root = root.node
 	return t, nil
+}
+
+func insertTerm() simpPattern {
+	return simpPattern{
+		func(root *node) bool {
+			return root.hasFlag(flagTerm)
+		},
+		func(root *node) *node {
+			var term *term
+			for _, t := range terms {
+				if t.name == root.data {
+					term = t
+					break
+				}
+			}
+
+			result := term.root.copyDeep()
+			termPleaceVars(result, term, root)
+
+			return result
+		},
+		"Insterting term",
+	}
+}
+
+func termPleaceVars(node *node, term *term, termVar *node) {
+	for _, child := range node.childs {
+		termPleaceVars(child, term, termVar)
+	}
+
+	for i, variable := range term.variables {
+		if variable.equal(node) {
+			*node = *termVar.childs[i]
+		}
+	}
+
 }

@@ -98,6 +98,15 @@ func tryParseVaraible(text string) *parserNode {
 	return nil
 }
 
+func tryParseTerm(text string) *parserNode {
+	for _, term := range terms {
+		if text == term.name {
+			return newParserNode(rankTerm, len(term.variables), len(term.variables), newNode(text, 0, flagAction, flagTerm))
+		}
+	}
+	return nil
+}
+
 func tryParseReplaceRulePart(text string) *parserNode {
 	parts := splitAny(text, "_")
 	if len(parts) == 2 {

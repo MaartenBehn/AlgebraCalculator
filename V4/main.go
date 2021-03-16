@@ -26,7 +26,11 @@ type Result struct {
 	Log           []string
 }
 
+var terms []*term
+
 func Calculate(termStrings ...string) Result {
+	terms = nil
+
 	result := Result{
 		AnswerStrings: map[int]string{},
 		TermStrings:   map[int]string{},
@@ -50,12 +54,15 @@ func Calculate(termStrings ...string) Result {
 			result.Log = append(result.Log, log.GetLog())
 			continue
 		}
+		result.Log = append(result.Log, log.GetLog())
 
 		term.root.print()
 		result.AnswerStrings[i] = log.GetLog()
 
 		term.print()
 		result.TermStrings[i] = log.GetLog()
+
+		terms = append(terms, term)
 	}
 	return result
 }

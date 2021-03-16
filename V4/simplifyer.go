@@ -34,7 +34,6 @@ func simplifyRoot(root *node) {
 			if match {
 				root.printTree(0)
 				log.Print("\n")
-				log.PrintLog()
 				found = true
 				break
 			}

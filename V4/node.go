@@ -20,8 +20,8 @@ const (
 	flagAction    = 20
 	flagOperator1 = 21
 	flagOperator2 = 22
-	flagFraction  = 23
-	flagVector    = 24
+	flagVector    = 23
+	flagTerm      = 24
 
 	flagBracketRoot = 30
 	flagRuleData    = 31
