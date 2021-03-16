@@ -16,6 +16,11 @@ func initSolve() {
 		solveOperator2("/", func(x float64, y float64) float64 { return x / y }),
 		solveOperator2Edge("/", func(x float64, y float64) float64 { return x / y }),
 
+		solveOperator2("pow", func(x float64, y float64) float64 { return math.Pow(x, y) }),
+		solveOperator2Edge("pow", func(x float64, y float64) float64 { return math.Pow(x, y) }),
+
+		solveOperator1("sqrt", func(x float64) float64 { return math.Sqrt(x) }),
+
 		solveOperator1("sin", math.Sin),
 		solveOperator1("sinh", math.Sinh),
 		solveOperator1("asin", math.Asin),
@@ -31,6 +36,8 @@ func initSolve() {
 		solveOperator1("atan", math.Atan),
 		solveOperator1("atanh", math.Atanh),
 		solveOperator2("atan2", math.Atan2),
+
+		solveOperator1("abs", math.Abs),
 	)
 }
 

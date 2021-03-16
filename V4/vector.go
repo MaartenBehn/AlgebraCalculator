@@ -21,6 +21,7 @@ func initVector() {
 
 		vectorOperator2("dot", dot),
 		vectorOperator1("len", magnitude),
+		vectorOperator2("dist", dist),
 	)
 }
 
@@ -160,12 +161,12 @@ func magnitude(x *node) *node {
 	result := newNode("sqrt", 0, flagAction, flagOperator1)
 	current := &result
 
-	for i := 2; i < len(x.childs); i++ {
+	for i := 1; i < len(x.childs); i++ {
 		(*current).setChilds(newNode("+", 0, flagAction, flagOperator2))
 		current = &((*current).childs[0])
 	}
 
-	current = &result
+	current = &result.childs[0]
 	for i := len(x.childs) - 1; i >= 0; i-- {
 		mul := newNode("pow", 0, flagAction, flagOperator2)
 		mul.setChilds(x.childs[i], newNode("", 2, flagData, flagNumber))
@@ -175,6 +176,21 @@ func magnitude(x *node) *node {
 			current = &((*current).childs[0])
 		}
 	}
+
+	return result
+}
+
+func dist(x *node, y *node) *node {
+	input := newVector()
+
+	input.childs = make([]*node, len(x.childs))
+	for i := range x.childs {
+		input.childs[i] = newNode("-", 0, flagAction, flagOperator2)
+		input.childs[i].setChilds(y.childs[i], x.childs[i])
+	}
+
+	result := newNode("abs", 0, flagAction, flagOperator1)
+	result.setChilds(magnitude(input))
 
 	return result
 }
