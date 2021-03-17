@@ -1,4 +1,4 @@
-package V4
+package AlgebraCalculator
 
 import (
 	"AlgebraCalculator/log"

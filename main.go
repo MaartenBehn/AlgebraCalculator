@@ -1,44 +1,69 @@
 package AlgebraCalculator
 
-import (
-	"AlgebraCalculator/log"
-	"strings"
-)
+import "AlgebraCalculator/log"
 
-func Init(ruleStrings []string) {
-	log.InitLog()
-	initNamedNodeSlice()
-	initRules(ruleStrings)
+var initilized bool
+
+func init() {
+	if !initilized {
+		log.InitLog()
+		initTerm()
+
+		initSimplifyer()
+		initTermFunctions()
+		initSolve()
+		initVector()
+		initSort()
+		initReplace()
+		log.GetLog()
+
+		initilized = true
+	}
 }
 
-func Run(termsLines ...string) (results map[int]string, loggged string) {
+type Result struct {
+	AnswerStrings map[int]string
+	TermStrings   map[int]string
+	Log           []string
+}
 
-	termMap := map[int]iNode{}
-	for i, line := range termsLines {
-		if !strings.Contains(line, "=") || strings.Contains(line, "//") {
-			continue
-		}
+var terms []*term
 
-		term, err := parseTerm(line, termMap)
-		if handelError(err) {
-			continue
-		}
+func Calculate(termStrings ...string) Result {
+	terms = nil
 
-		err = term.check()
-		if handelError(err) {
-			continue
-		}
-
-		term.solveTerm()
-		termMap[i] = term
-	}
-	loggged = log.GetLog()
-
-	results = map[int]string{}
-	for i, termNode := range termMap {
-		termNode.(*term).printTerm()
-		results[i] = log.GetLog()
+	result := Result{
+		AnswerStrings: map[int]string{},
+		TermStrings:   map[int]string{},
 	}
 
-	return results, loggged
+	for i, termString := range termStrings {
+		if termString == "" {
+			continue
+		}
+
+		term, err := parseTerm(termString)
+		result.Log = append(result.Log, log.GetLog())
+		if handelError(err) {
+			result.Log = append(result.Log, log.GetLog())
+			continue
+		}
+
+		simplifyRoot(term.root)
+		if r := recover(); r != nil {
+			handelError(newError(errorTypSolving, errorCriticalLevelPartial, "Some Error accured!"))
+			result.Log = append(result.Log, log.GetLog())
+			continue
+		}
+		result.Log = append(result.Log, log.GetLog())
+
+		term.root.print()
+		result.AnswerStrings[i] = log.GetLog()
+
+		term.print()
+		result.TermStrings[i] = log.GetLog()
+
+		terms = append(terms, term)
+	}
+	return result
 }

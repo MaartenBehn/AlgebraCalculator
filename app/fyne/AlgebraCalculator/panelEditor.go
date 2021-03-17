@@ -1,7 +1,7 @@
 package main
 
 import (
-	"AlgebraCalculator/V4"
+	"AlgebraCalculator"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
@@ -70,7 +70,7 @@ func (e *editorPanel) updateContent() {
 	e.list.Objects = itemContents
 }
 func (e *editorPanel) updateCalculations() {
-	result := V4.Calculate(e.getAllTexts()...)
+	result := AlgebraCalculator.Calculate(e.getAllTexts()...)
 	for i, item := range e.Items {
 		item.setResult(result.TermStrings[i])
 	}

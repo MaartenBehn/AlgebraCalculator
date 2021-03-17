@@ -1,132 +1,231 @@
 package AlgebraCalculator
 
 import (
-	"AlgebraCalculator/log"
-	"fmt"
 	"math"
 )
 
-type vector struct {
-	*node
-	values []float64
-	len    int
+func initVector() {
+	simpPatterns = append(simpPatterns,
+		simpPattern{
+			func(root *node) bool {
+				return root.hasFlag(flagOperator2) && root.data == ","
+			},
+			func(root *node) *node {
+				return vectorOpperatorToNode(root)
+			},
+			"\",\" operator to vector",
+		},
+
+		vectorMergeOperator2("+"),
+		vectorMergeOperator2("-"),
+
+		vectorMergeOperator1("sin"), // TODO check if you can actually do that.
+
+		vectorApplyScalar("*"),
+
+		vectorOperator2("dot", dot),
+		vectorOperator1("len", magnitude),
+		vectorOperator2("dist", dist),
+
+		vectorSubOperation(),
+	)
 }
 
-func newVector(values []float64) *vector {
-	return &vector{
-		node:   newNode(typVector, rankNotSolvable, 0),
-		values: values,
-		len:    len(values),
-	}
+func newVector() *node {
+	return newNode("Vector", 0, flagAction, flagVector)
 }
 
-// vaules ein bool
-func (v *vector) getDefiner(vaules bool) string {
-	if vaules {
-		return v.definer + v.toString()
-	}
-	return v.definer
-}
+func vectorOpperatorToNode(node *node) *node {
+	vector := newVector()
 
-func (v *vector) getDeepDefiner(vaules bool) string {
-	var deepDefiner string
-	for _, child := range v.childs {
-		deepDefiner += child.getDeepDefiner(vaules)
-	}
-	deepDefiner += v.getDefiner(vaules)
-	return deepDefiner
-}
-
-func (v *vector) copy() iNode {
-	copy := newVector(v.values)
-	copy.childs = make([]iNode, len(v.childs))
-
-	for i, child := range v.childs {
-		childCopy := child.copy()
-		childCopy.setParent(copy)
-		copy.childs[i] = childCopy
-	}
-	return copy
-}
-func (v vector) print() {
-	v.node.print()
-	log.Print(v.toString())
-}
-func (v vector) printTree(indentation int) {
-	printIndentation(indentation)
-	log.Print(v.toString())
-	v.node.printTree(indentation)
-}
-
-func (v *vector) append(v2 *vector) {
-	v.values = append(v.values, v2.values...)
-	v.len = len(v.values)
-}
-func (v *vector) updateLen() {
-	v.len = len(v.values)
-}
-func (v *vector) toString() string {
-	var text string
-	if v.len > 1 {
-		text += "( "
-	}
-
-	for i, value := range v.values {
-
-		if value == math.Trunc(value) {
-			text += fmt.Sprintf("%.0f", value)
+	for _, child := range node.childs {
+		if child.data == "," {
+			vector.childs = append(vector.childs, vectorOpperatorToNode(child).childs...)
 		} else {
-			text += fmt.Sprintf("%.4f", value)
-		}
-
-		if i < v.len-1 {
-			text += " , "
+			vector.childs = append(vector.childs, child)
 		}
 	}
-
-	if v.len > 1 {
-		text += " )"
-	}
-	return text
+	return vector
 }
 
-func genericOpperation1V(x *vector, opperation func(float64) float64) *vector {
-	result := newVector(nil)
-	result.values = make([]float64, x.len)
-	for i := 0; i < x.len; i++ {
-		result.values[i] = opperation(x.values[i])
+func vectorMergeOperator1(name string) simpPattern {
+	return simpPattern{
+		func(root *node) bool {
+			return root.hasFlag(flagOperator1) && root.data == name &&
+				root.childs[0].hasFlag(flagVector)
+		},
+		func(root *node) *node {
+			result := newVector()
+
+			dimensions := len(root.childs[0].childs)
+			result.childs = make([]*node, dimensions)
+			for i := 0; i < dimensions; i++ {
+				result.childs[i] = newNode(name, 0, flagAction, flagOperator1)
+				result.childs[i].setChilds(root.childs[0].childs[i])
+			}
+			return result
+		},
+		"Vector merge " + name,
 	}
-	result.updateLen()
+}
+func vectorMergeOperator2(name string) simpPattern {
+	return simpPattern{
+		func(root *node) bool {
+			return root.hasFlag(flagOperator2) && root.data == name &&
+				root.childs[0].hasFlag(flagVector) &&
+				root.childs[1].hasFlag(flagVector) &&
+				len(root.childs[0].childs) == len(root.childs[1].childs)
+		},
+		func(root *node) *node {
+			result := newVector()
+
+			dimensions := len(root.childs[0].childs)
+			result.childs = make([]*node, dimensions)
+			for i := 0; i < dimensions; i++ {
+				result.childs[i] = newNode(name, 0, flagAction, flagOperator2)
+				result.childs[i].setChilds(root.childs[0].childs[i], root.childs[1].childs[i])
+			}
+			return result
+		},
+		"Vector merge " + name,
+	}
+}
+
+func vectorApplyScalar(name string) simpPattern {
+	return simpPattern{
+		func(root *node) bool {
+			return root.hasFlag(flagOperator2) && root.data == name &&
+				(root.childs[0].hasFlag(flagVector) && root.childs[1].hasFlag(flagData))
+		},
+		func(root *node) *node {
+			result := newVector()
+
+			dimensions := len(root.childs[0].childs)
+			result.childs = make([]*node, dimensions)
+
+			for i := 0; i < dimensions; i++ {
+				result.childs[i] = newNode(name, 0, flagAction, flagOperator2)
+				result.childs[i].setChilds(root.childs[0].childs[i], root.childs[1].copyDeep())
+			}
+			return result
+		},
+		"Apply scala " + name,
+	}
+}
+
+func vectorOperator1(name string, function func(x *node) *node) simpPattern {
+	return simpPattern{
+		func(root *node) bool {
+			return root.hasFlag(flagOperator1) && root.data == name &&
+				root.childs[0].hasFlag(flagVector)
+		},
+		func(root *node) *node {
+			return function(root.childs[0])
+		},
+		"Vector solve " + name,
+	}
+}
+func vectorOperator2(name string, function func(x *node, y *node) *node) simpPattern {
+	return simpPattern{
+		func(root *node) bool {
+			return root.hasFlag(flagOperator2) && root.data == name &&
+				root.childs[0].hasFlag(flagVector) &&
+				root.childs[1].hasFlag(flagVector) &&
+				len(root.childs[0].childs) == len(root.childs[1].childs)
+		},
+		func(root *node) *node {
+			return function(root.childs[0], root.childs[1])
+		},
+		"Vector solve " + name,
+	}
+}
+
+func dot(x *node, y *node) *node {
+	result := newNode("+", 0, flagAction, flagOperator2)
+	current := &result
+
+	for i := 2; i < len(x.childs); i++ {
+		(*current).setChilds(newNode("+", 0, flagAction, flagOperator2))
+		current = &((*current).childs[0])
+	}
+
+	current = &result
+	for i := len(x.childs) - 1; i >= 0; i-- {
+		mul := newNode("*", 0, flagAction, flagOperator2)
+		mul.setChilds(x.childs[i], y.childs[i])
+
+		(*current).childs = append((*current).childs, mul)
+		if i > 1 {
+			current = &((*current).childs[0])
+		}
+	}
+
 	return result
 }
-func genericOpperation2VScalar(x *vector, y *vector, opperation func(float64, float64) float64) *vector {
-	result := newVector(nil)
+func magnitude(x *node) *node {
+	result := newNode("sqrt", 0, flagAction, flagOperator1)
+	current := &result
 
-	if x.len == y.len {
-
-		result.values = make([]float64, x.len)
-		for i := 0; i < x.len; i++ {
-			result.values[i] = opperation(x.values[i], y.values[i])
-		}
-
-	} else if x.len == 1 {
-
-		result.values = make([]float64, y.len)
-		for i := 0; i < y.len; i++ {
-			result.values[i] = opperation(x.values[0], y.values[i])
-		}
-
-	} else if y.len == 1 {
-
-		result.values = make([]float64, x.len)
-		for i := 0; i < x.len; i++ {
-			result.values[i] = opperation(x.values[i], y.values[0])
-		}
-
-	} else {
-		handelError(newError(errorTypSolving, errorCriticalLevelNon, "Invalid vector Dimentions!"))
+	for i := 1; i < len(x.childs); i++ {
+		(*current).setChilds(newNode("+", 0, flagAction, flagOperator2))
+		current = &((*current).childs[0])
 	}
 
-	result.updateLen()
+	current = &result.childs[0]
+	for i := len(x.childs) - 1; i >= 0; i-- {
+		mul := newNode("pow", 0, flagAction, flagOperator2)
+		mul.setChilds(x.childs[i], newNode("", 2, flagData, flagNumber))
+
+		(*current).childs = append((*current).childs, mul)
+		if i > 1 {
+			current = &((*current).childs[0])
+		}
+	}
+
 	return result
+}
+func dist(x *node, y *node) *node {
+	input := newVector()
+
+	input.childs = make([]*node, len(x.childs))
+	for i := range x.childs {
+		input.childs[i] = newNode("-", 0, flagAction, flagOperator2)
+		input.childs[i].setChilds(y.childs[i], x.childs[i])
+	}
+
+	result := newNode("abs", 0, flagAction, flagOperator1)
+	result.setChilds(magnitude(input))
+
+	return result
+}
+
+func vectorSubOperation() simpPattern {
+	return simpPattern{
+		func(root *node) bool {
+			return root.hasFlag(flagOperator2) && root.data == "." &&
+				root.childs[0].hasFlag(flagVector) &&
+				root.childs[1].hasFlag(flagNumber) &&
+				root.childs[1].dataNumber == math.Trunc(root.childs[1].dataNumber)
+		},
+		func(root *node) *node {
+			result := newVector()
+
+			number := int(root.childs[1].dataNumber)
+
+			for number > 0 {
+				digit := number % 10
+				number /= 10
+
+				if digit > len(root.childs[0].childs) || digit <= 0 {
+					handelError(newError(errorTypParsing, errorCriticalLevelNon, "SubOperation index out of bounds."))
+					return root.childs[0] // TODO error in simplifying
+				}
+
+				result.childs = append([]*node{root.childs[0].childs[digit-1]}, result.childs...)
+			}
+
+			return result
+		},
+		"Solve SubOperation",
+	}
 }

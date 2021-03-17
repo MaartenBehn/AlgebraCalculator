@@ -2,176 +2,200 @@ package AlgebraCalculator
 
 import (
 	"AlgebraCalculator/log"
-	"strconv"
+	"fmt"
+	"math"
 )
 
-type iNode interface {
-	setParent(partent iNode)
-	getParent() iNode
-	setChilds(childs []iNode)
-	getChilds() []iNode
-	getMaxChilds() int
-
-	getType() int
-	getRank() int
-	getDefiner(vaules bool) string
-	getDeepDefiner(vaules bool) string
-	setBracketRoot(is bool)
-	getBracketRoot() bool
-
-	copy() iNode
-	check() error
-	solve() bool
-	sort() bool
-	print()
-	printTree(indentation int)
-}
-
 const (
-	typNone            = 0
-	typRoot            = 1
-	typVector          = 2
-	typVariable        = 3
-	typOpperator       = 4
-	typMathFunction    = 5
-	typSubOperation    = 6
-	typTerm            = 7
-	typComplexFunction = 8
+	flagNone = 0
+	flagRoot = 1
 
-	rankNone            = 0
-	rankRoot            = 1
-	rankAppend          = 2
-	rankAddSub          = 3
-	rankMul             = 4
-	rankPow             = 5
-	rankMathFunction    = 6
-	rankSubOpperation   = 7
-	rankTerm            = 8
-	rankComplexFunction = 9
-	rankNotSolvable     = 100
+	// Data Types no Children
+	flagData     = 10
+	flagNumber   = 11
+	flagConstant = 12
+	flagVariable = 13
+
+	// Action Typs have Children
+	flagAction    = 20
+	flagOperator1 = 21
+	flagOperator2 = 22
+	flagVector    = 23
+	flagTerm      = 24
+
+	flagBracketRoot = 30
+	flagRuleData    = 31
+
+	flagMax      = 40
+	flagOptional = 30
 )
 
 type node struct {
-	parent      iNode
-	childs      []iNode
-	typeId      int
-	rank        int
-	maxChilds   int
-	definer     string
-	bracketRoot bool
+	childs []*node
+
+	data       string
+	dataNumber float64
+
+	flagValues [flagMax]bool
 }
 
-func newNode(typeId int, rank int, maxChilds int) *node {
-	return &node{
-		typeId:    typeId,
-		rank:      rank,
-		maxChilds: maxChilds,
-		definer:   strconv.Itoa(typeId),
+func newNode(data string, dataNumber float64, flags ...int) *node {
+	node := &node{
+		data:       data,
+		dataNumber: dataNumber,
+	}
+
+	// Set all flagValues that are parsed in.
+	for _, flag := range flags {
+		node.setFlag(flag, true)
+	}
+
+	// If no flagValues are set node will ge flag none
+	if len(flags) == 0 {
+		node.setFlag(flagNone, true)
+	}
+
+	return node
+}
+func (n *node) setChilds(childs ...*node) {
+	n.childs = childs
+}
+func (n *node) setFlag(flag int, value bool) {
+	// Remove none when an other flag is set.
+	if n.flagValues[flagNone] && flag != flagNone && value {
+		n.flagValues[flagNone] = false
+	}
+
+	n.flagValues[flag] = value
+}
+func (n *node) hasFlag(flag int) bool {
+	return n.flagValues[flag]
+}
+func (n *node) hasAllFlagsOfNode(reference *node) bool {
+	for flag, flagValue := range reference.flagValues {
+		if flag >= flagOptional {
+			break
+		}
+
+		if flagValue && !n.hasFlag(flag) {
+			return false
+		}
+	}
+	return true
+}
+func (n *node) equal(reference *node) bool {
+	if !n.hasAllFlagsOfNode(reference) {
+		return false
+	}
+
+	if n.hasFlag(flagNumber) {
+		return n.dataNumber == reference.dataNumber
+	} else {
+		return n.data == reference.data
 	}
 }
-
-func (t *node) setParent(partent iNode) {
-	t.parent = partent
-}
-func (t *node) getParent() iNode {
-	return t.parent
-}
-func (t *node) setChilds(childs []iNode) {
-	t.childs = childs
-}
-func (t *node) getChilds() []iNode {
-	return t.childs
-}
-func (t *node) getMaxChilds() int {
-	return t.maxChilds
-}
-
-func (t *node) getType() int {
-	return t.typeId
-}
-func (t *node) getRank() int {
-	return t.rank
-}
-func (t *node) getDefiner(vaules bool) string {
-	return t.definer
-}
-func (t *node) getDeepDefiner(vaules bool) string {
-	var deepDefiner string
-	for _, child := range t.childs {
-		deepDefiner += child.getDeepDefiner(vaules)
+func (n *node) equalDeep(reference *node) bool {
+	if len(n.childs) != len(reference.childs) || !n.equal(reference) {
+		return false
 	}
-	deepDefiner += t.definer
-	return deepDefiner
-}
-func (t *node) setBracketRoot(is bool) {
-	t.bracketRoot = is
-}
-func (t *node) getBracketRoot() bool {
-	return t.bracketRoot
-}
 
-func (t *node) copy() iNode {
-	copy := newNode(t.typeId, t.rank, t.maxChilds)
-	copy.childs = make([]iNode, len(t.childs))
+	for i, child := range n.childs {
+		if !child.equal(reference.childs[i]) {
+			return false
+		}
+	}
+	return true
+}
+func (n *node) copyDeep() *node {
+	copy := newNode(n.data, n.dataNumber)
+	copy.flagValues = n.flagValues
 
-	for i, child := range t.childs {
-		childCopy := child.copy()
-		childCopy.setParent(copy)
-		copy.childs[i] = childCopy
+	for _, child := range n.childs {
+		copy.childs = append(copy.childs, child.copyDeep())
 	}
 	return copy
 }
-func (t *node) check() error {
-	for _, child := range t.childs {
-		err := child.check()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+func (n *node) getIdentity() string { // TODO improve for sorting
+	return n.data + fmt.Sprintf("%f", n.dataNumber)
 }
-func (t *node) solve() bool {
-	solved := false
-	for _, child := range t.childs {
-		if child.solve() {
-			solved = true
-		}
+func (n *node) getIdentityDeep() string {
+	identify := n.getIdentity()
+	for _, child := range n.childs {
+		identify += child.getIdentityDeep()
 	}
-	return solved
+	return identify
 }
-func (t *node) sort() bool {
-	sorted := false
-	for _, child := range t.childs {
-		if child.sort() {
-			sorted = true
-		}
-	}
-	return sorted
-}
-func (t *node) print() {
-	if len(t.childs) > 0 {
 
-		if t.bracketRoot {
-			log.Print("(")
-		}
+func (n *node) print() {
 
-		for _, child := range t.childs {
+	if n.hasFlag(flagBracketRoot) {
+		log.Print("(")
+	}
+	if n.hasFlag(flagVector) {
+
+		log.Print("(")
+		for i, child := range n.childs {
+			if i != 0 {
+				log.Print(", ")
+			}
 			child.print()
 		}
-		if t.bracketRoot {
-			log.Print(")")
+		log.Print(")")
+
+	} else if n.hasFlag(flagOperator2) {
+		n.childs[0].print()
+		log.Printf(" %s ", n.data)
+		n.childs[1].print()
+	} else {
+		if n.hasFlag(flagNumber) {
+			if n.dataNumber == math.Trunc(n.dataNumber) {
+				log.Printf("%.0f", n.dataNumber)
+			} else {
+				log.Printf("%.4f", n.dataNumber)
+			}
+		} else {
+			log.Print(n.data)
 		}
+
+		for _, child := range n.childs {
+			log.Print(" ")
+			child.print()
+		}
+	}
+
+	if n.hasFlag(flagBracketRoot) {
+		log.Print(")")
 	}
 }
-func (t *node) printTree(indentation int) {
-	log.Print("\n")
-	indentation++
-	if len(t.childs) > 0 {
-		for _, child := range t.childs {
-			child.printTree(indentation)
+func (n *node) printTree(indentation int) {
+
+	if n.hasFlag(flagOperator2) {
+		n.childs[0].printTree(indentation + 1)
+
+		log.Print("\n")
+		printIndentation(indentation)
+		log.Printf(" %s ", n.data)
+
+		n.childs[1].printTree(indentation + 1)
+	} else {
+
+		log.Print("\n")
+		printIndentation(indentation)
+		if n.hasFlag(flagNumber) {
+			if n.dataNumber == math.Trunc(n.dataNumber) {
+				log.Printf("%.0f", n.dataNumber)
+			} else {
+				log.Printf("%.4f", n.dataNumber)
+			}
+		} else {
+			log.Print(n.data)
+		}
+
+		for _, child := range n.childs {
+			log.Print(" ")
+			child.printTree(indentation + 1)
 		}
 	}
-	indentation--
 }
 func printIndentation(indentation int) {
 	for i := 0; i < indentation; i++ {
@@ -184,68 +208,4 @@ func printIndentation(indentation int) {
 		}
 
 	}
-}
-
-// replaceNode replaces old to new and updates the partent and child pointers to new.
-func replaceNode(old iNode, new iNode) {
-
-	// Copy node Data to new
-	new.setChilds(old.getChilds())
-	new.setParent(old.getParent())
-
-	// Set the partents of the childs to new
-	for _, child := range new.getChilds() {
-		child.setParent(new)
-	}
-
-	// Set the childs of the partent to new
-	if new.getParent() != nil {
-		childs := new.getParent().getChilds()
-		for i, child := range childs {
-			if child == old {
-				childs[i] = new
-			}
-		}
-		new.getParent().setChilds(childs)
-	}
-}
-
-// insertNode replaces old to new but keep the childs of new while conectiong the partent of old.
-func insertNode(old iNode, new iNode) {
-
-	// Copy Partent pointer
-	new.setParent(old.getParent())
-
-	// Set new as child of partent of old
-	if new.getParent() != nil {
-		childs := new.getParent().getChilds()
-		for i, child := range childs {
-			if child == old {
-				childs[i] = new
-			}
-		}
-		new.getParent().setChilds(childs)
-	}
-}
-
-func pushNode(node iNode, newNode iNode) {
-	if node.getType() == typNone {
-		replaceNode(node, newNode)
-		return
-	}
-
-	childs := node.getChilds()
-	if len(childs) >= node.getMaxChilds() {
-		mostLeftNode := childs[0]
-		pushNode(newNode, mostLeftNode)
-		childs[0] = newNode
-	} else {
-		childs = append(childs, newNode)
-	}
-	node.setChilds(childs)
-	newNode.setParent(node)
-}
-
-func deepEqual(node1 iNode, node2 iNode) bool {
-	return node1.getDeepDefiner(true) == node2.getDeepDefiner(true)
 }

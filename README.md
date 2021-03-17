@@ -76,6 +76,5 @@ b = a.1 -> b = 5
 Term functions are operations that can only be applied on other terms.
 List of term functions:
 * "gauss" -> tries to solve the interal varibles of the term with gaussian elimination.
-* "removeSub" -> removes all sub operations from term
 
 

@@ -1,77 +1,60 @@
 package AlgebraCalculator
 
-import (
-	"AlgebraCalculator/log"
-)
+import "AlgebraCalculator/log"
+
+var parseTermFuncs []func(text string) *parserNode
+
+func initTerm() {
+	parseTermFuncs = append(parseTermFuncs,
+		func(text string) *parserNode { return tryParseNumber(text) },
+
+		func(text string) *parserNode { return tryParseOperator2(text, "+", rankAddSub) },
+		func(text string) *parserNode { return tryParseOperator2(text, "-", rankAddSub) },
+		func(text string) *parserNode { return tryParseOperator2(text, "*", rankMul) },
+		func(text string) *parserNode { return tryParseOperator2(text, "/", rankMul) },
+		func(text string) *parserNode { return tryParseOperator2(text, "pow", rankPow) },
+
+		func(text string) *parserNode { return tryParseOperator2(text, ",", rankAppend) },
+		func(text string) *parserNode { return tryParseOperator2(text, ".", rankSubOperation) },
+
+		func(text string) *parserNode { return tryParseOperator1(text, "sin", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "sinh", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "asin", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "asinh", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "cos", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "cosh", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "acos", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "acosh", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "tan", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "tanh", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "atan", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "atanh", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator2(text, "atan2", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "abs", rankMathFunction) },
+
+		func(text string) *parserNode { return tryParseOperator2(text, "dot", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "len", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator2(text, "dist", rankMathFunction) },
+
+		func(text string) *parserNode { return tryParseTerm(text) },
+		func(text string) *parserNode { return tryParseVaraible(text) },
+	)
+
+	simpPatterns = append(simpPatterns,
+		insertTerm(),
+	)
+}
 
 type term struct {
-	*namedNode
-	variables []*variable
-	root      iNode
-	fromLine  int
+	name      string
+	variables []*node
+	root      *node
 }
 
-func newTerm(name string, variables []*variable) *term {
-	return &term{
-		namedNode: newNamedNode(newNode(typTerm, rankTerm, 1), name),
-		variables: variables,
-	}
-}
-
-func (t *term) solve() bool {
-	t.node.solve()
-
-	t.replaceTermVariables(t.root, t.childs)
-	firstNode := t.root.getChilds()[0]
-	insertNode(t, firstNode)
-	return true
-}
-func (t *term) replaceTermVariables(node iNode, replacements []iNode) {
-	for _, child := range node.getChilds() {
-		t.replaceTermVariables(child, replacements)
-	}
-
-	for i, variable := range t.variables {
-		if node.getDefiner(false) == variable.getDefiner(false) {
-			insertNode(node, replacements[i].copy())
-		}
-	}
-}
-
-func (t *term) copy() iNode {
-	copy := newTerm(t.name, t.variables)
-	copy.childs = make([]iNode, len(t.childs))
-
-	for i, child := range t.childs {
-		childCopy := child.copy()
-		childCopy.setParent(copy)
-		copy.childs[i] = childCopy
-	}
-	copy.root = t.root.copy()
-	return copy
-}
-func (t *term) check() error {
-	err := t.node.check()
-	if err != nil {
-		return err
-	}
-
-	err = t.root.check()
-	if err != nil {
-		return err
-	}
-
-	if t.root.getType() == typNone {
-		return newError(errorTypParsing, errorCriticalLevelPartial, "root type is none.")
-	}
-	return nil
+func newTerm(name string) *term {
+	return &term{name: name}
 }
 func (t *term) print() {
-	log.Print(t.name)
-	t.node.print()
-}
-
-func (t *term) printTerm() {
 	log.Print(t.name)
 	if len(t.variables) > 0 {
 
@@ -88,75 +71,79 @@ func (t *term) printTerm() {
 
 	t.root.print()
 }
-func (t *term) solveTerm() {
 
-	log.Print("\n")
-	t.printTerm()
-	log.Print("\n")
+func parseTerm(text string) (*term, error) {
+	parts := splitAny(text, "=")
 
-	root := t.root
-	log.Print("Parsed:")
-	root.printTree(0)
-	log.Print("\n")
-
-	for _, ruleList := range simpRules {
-		if ruleList == nil {
-			continue
-		}
-
-		run := true
-		for i := 0; i < 1000 && run; i++ {
-
-			run = false
-			run2 := true
-			for run2 {
-				run2 = root.sort()
-
-				if run2 {
-					log.Print("Sort:")
-					root.printTree(0)
-					log.Print("\n")
-
-					run = true
-				}
-			}
-
-			run2 = true
-			for run2 {
-				run2 = root.solve()
-
-				if run2 {
-					log.Print("Solve:")
-					root.printTree(0)
-					log.Print("\n")
-
-					run = true
-				}
-			}
-
-			run2 = true
-			for run2 {
-				for _, rule := range ruleList {
-					run2 = rule.applyRule(root, rule.search)
-
-					if run2 {
-						log.Print("Simpify: ")
-						log.Printf("%s", rule.base)
-						root.printTree(0)
-						log.Print("\n")
-
-						root.solve()
-
-						run = true
-						break
-					}
-				}
-			}
+	if len(parts) != 2 {
+		if len(parts) != 2 {
+			return nil, newError(errorTypParsing, errorCriticalLevelPartial, "There is not a valid part before or after \"=\" in term!")
 		}
 	}
-	t.root = root
 
-	log.Print(" => ")
-	t.printTerm()
+	parts1 := splitAny(parts[0], " <>")
+	if len(parts1) == 0 {
+		return nil, newError(errorTypParsing, errorCriticalLevelPartial, "Term has no name!")
+	}
+
+	var variables []*node
+	for i := 1; i < len(parts1); i++ {
+		variables = append(variables, newNode(parts1[i], 0, flagData, flagVariable))
+	}
+
+	parts2 := splitAny(parts[1], " <>")
+	if len(parts2) == 0 {
+		return nil, newError(errorTypParsing, errorCriticalLevelPartial, "No Expression after \"=\"")
+	}
+
+	currentVariables = variables
+	root, _, err := parseRoot(parseTermFuncs, parts2...)
+	if handelError(err) {
+		return nil, newError(errorTypParsing, errorCriticalLevelPartial, "term could not be parsed!")
+	}
+
+	log.Print("Parse: \n")
+	root.print()
 	log.Print("\n")
+
+	t := newTerm(parts1[0])
+	t.variables = variables
+	t.root = root.node
+	return t, nil
+}
+
+func insertTerm() simpPattern {
+	return simpPattern{
+		func(root *node) bool {
+			return root.hasFlag(flagTerm)
+		},
+		func(root *node) *node {
+			var term *term
+			for _, t := range terms {
+				if t.name == root.data {
+					term = t
+					break
+				}
+			}
+
+			result := term.root.copyDeep()
+			termPleaceVars(result, term, root)
+
+			return result
+		},
+		"Insterting term",
+	}
+}
+
+func termPleaceVars(node *node, term *term, termVar *node) {
+	for _, child := range node.childs {
+		termPleaceVars(child, term, termVar)
+	}
+
+	for i, variable := range term.variables {
+		if variable.equal(node) {
+			*node = *termVar.childs[i]
+		}
+	}
+
 }

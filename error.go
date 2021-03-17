@@ -2,7 +2,6 @@ package AlgebraCalculator
 
 import (
 	"AlgebraCalculator/log"
-	"os"
 	"reflect"
 	"strings"
 )
@@ -36,11 +35,9 @@ func newError(typ string, critical string, text string) *calculatorError {
 func (e calculatorError) Error() string {
 	builder := strings.Builder{}
 	builder.WriteString(e.typ)
-	builder.WriteString(": \"")
+	builder.WriteString(": \" ")
 	builder.WriteString(e.text)
-	builder.WriteString("\" with critical Level: ")
-	builder.WriteString(e.critical)
-	builder.WriteString(" accured!")
+	builder.WriteString(" \" ")
 	return builder.String()
 }
 
@@ -59,9 +56,7 @@ func handelError(err error) bool {
 			log.Print(err.Error())
 			return true
 		case errorCriticalLevelFatal:
-			log.Print(err.Error())
-			log.Println(" -> Programm was stopped!")
-			os.Exit(1)
+			panic(err)
 		}
 		handelError(newError(errorTypErrorhandling, errorCriticalLevelFatal, "calculatorError \""+err.(*calculatorError).text+"\" has not valid critiacl level!"))
 	} else {
