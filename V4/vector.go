@@ -1,5 +1,9 @@
 package V4
 
+import (
+	"math"
+)
+
 func initVector() {
 	simpPatterns = append(simpPatterns,
 		simpPattern{
@@ -22,6 +26,8 @@ func initVector() {
 		vectorOperator2("dot", dot),
 		vectorOperator1("len", magnitude),
 		vectorOperator2("dist", dist),
+
+		vectorSubOperation(),
 	)
 }
 
@@ -156,7 +162,6 @@ func dot(x *node, y *node) *node {
 
 	return result
 }
-
 func magnitude(x *node) *node {
 	result := newNode("sqrt", 0, flagAction, flagOperator1)
 	current := &result
@@ -179,7 +184,6 @@ func magnitude(x *node) *node {
 
 	return result
 }
-
 func dist(x *node, y *node) *node {
 	input := newVector()
 
@@ -193,4 +197,35 @@ func dist(x *node, y *node) *node {
 	result.setChilds(magnitude(input))
 
 	return result
+}
+
+func vectorSubOperation() simpPattern {
+	return simpPattern{
+		func(root *node) bool {
+			return root.hasFlag(flagOperator2) && root.data == "." &&
+				root.childs[0].hasFlag(flagVector) &&
+				root.childs[1].hasFlag(flagNumber) &&
+				root.childs[1].dataNumber == math.Trunc(root.childs[1].dataNumber)
+		},
+		func(root *node) *node {
+			result := newVector()
+
+			number := int(root.childs[1].dataNumber)
+
+			for number > 0 {
+				digit := number % 10
+				number /= 10
+
+				if digit > len(root.childs[0].childs) || digit <= 0 {
+					handelError(newError(errorTypParsing, errorCriticalLevelNon, "SubOperation index out of bounds."))
+					return root.childs[0]
+				}
+
+				result.childs = append([]*node{root.childs[0].childs[digit-1]}, result.childs...)
+			}
+
+			return result
+		},
+		"Solve SubOperation",
+	}
 }

@@ -12,7 +12,7 @@ const (
 	rankMul             = 4
 	rankPow             = 5
 	rankMathFunction    = 6
-	rankSubOpperation   = 7
+	rankSubOperation    = 7
 	rankTerm            = 8
 	rankComplexFunction = 9
 	rankTermEnd         = 20

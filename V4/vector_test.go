@@ -15,6 +15,10 @@ var testVectorTerms = []string{
 	"a t = ( 1 , 2 ) * t",
 	"a = len ( 1 , 2 )",
 	"a = ( -1 , -2 ) dist ( 1 , 2 )",
+	"a = ( 1 , 2 ) . 1",
+	"a = ( 1 , 2 ) . 2",
+	"a = ( 1 , 2 ) . 12",
+	"a = ( 1 , 2 ) . 21",
 }
 
 func TestVector(t *testing.T) {

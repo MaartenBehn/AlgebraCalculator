@@ -13,7 +13,9 @@ func initTerm() {
 		func(text string) *parserNode { return tryParseOperator2(text, "*", rankMul) },
 		func(text string) *parserNode { return tryParseOperator2(text, "/", rankMul) },
 		func(text string) *parserNode { return tryParseOperator2(text, "pow", rankPow) },
+
 		func(text string) *parserNode { return tryParseOperator2(text, ",", rankAppend) },
+		func(text string) *parserNode { return tryParseOperator2(text, ".", rankSubOperation) },
 
 		func(text string) *parserNode { return tryParseOperator1(text, "sin", rankMathFunction) },
 		func(text string) *parserNode { return tryParseOperator1(text, "sinh", rankMathFunction) },
