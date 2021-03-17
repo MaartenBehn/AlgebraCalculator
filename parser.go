@@ -5,17 +5,17 @@ import (
 )
 
 const (
-	rankNone            = 0
-	rankRoot            = 1
-	rankAppend          = 2
-	rankAddSub          = 3
-	rankMul             = 4
-	rankPow             = 5
-	rankMathFunction    = 6
-	rankSubOperation    = 7
-	rankTerm            = 8
-	rankComplexFunction = 9
-	rankTermEnd         = 20
+	rankNone         = 0
+	rankRoot         = 1
+	rankAppend       = 2
+	rankAddSub       = 3
+	rankMul          = 4
+	rankPow          = 5
+	rankMathFunction = 6
+	rankSubOperation = 7
+	rankTermFunction = 8
+	rankTerm         = 9
+	rankTermEnd      = 10
 )
 
 type parserNode struct {

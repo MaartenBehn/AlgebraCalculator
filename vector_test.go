@@ -26,6 +26,7 @@ func TestVector(t *testing.T) {
 		term, err := parseTerm(vectorTerm)
 		if err != nil {
 			t.Error(err)
+			continue
 		}
 		simplifyRoot(term.root)
 		log.PrintLog()

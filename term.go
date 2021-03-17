@@ -36,6 +36,8 @@ func initTerm() {
 		func(text string) *parserNode { return tryParseOperator1(text, "len", rankMathFunction) },
 		func(text string) *parserNode { return tryParseOperator2(text, "dist", rankMathFunction) },
 
+		func(text string) *parserNode { return tryParseOperator1(text, "gauss", rankTermFunction) },
+
 		func(text string) *parserNode { return tryParseTerm(text) },
 		func(text string) *parserNode { return tryParseVaraible(text) },
 	)
