@@ -9,60 +9,86 @@ func initTermFunctions() {
 func termFunctionGauss() simpPattern {
 	return simpPattern{
 		func(root *node) bool {
-			return root.hasFlag(flagOperator1) && root.data == "gauss" &&
-				root.childs[0].hasFlag(flagTerm)
+			return root.hasFlag(flagOperator1) && root.data == "gauss"
 		},
 		func(root *node) *node {
-			var term *term
-			for _, t := range terms {
-				if t.name == root.childs[0].data {
-					term = t
-					break
-				}
+			dimentions := 1
+
+			if root.childs[0].hasFlag(flagVector) {
+				dimentions = len(root.childs[0].childs)
 			}
 
-			dimentions := len(term.variables)
+			var roots []*node
+			if dimentions != 1 {
+				roots = root.childs[0].childs
+			} else {
+				roots = []*node{root.childs[0]}
+			}
 
-			var variableVectors []*node
-			gaussFindVaribleVectors(term.root, &variableVectors)
-			if len(variableVectors) != dimentions {
-				handelError(newError(errorTypSolving, errorCriticalLevelNon, "Not all or more variables found than in term."))
-				return nil
+			var varsList []struct {
+				name    string
+				ammount []float64
+			}
+			var numsList []float64
+
+			for _, root := range roots {
+				// Finind childs of +ese
+				var childs []*node
+				gaussFindBaseChilds(root, &childs)
+
+				var nums []float64
+
+				for _, child := range childs {
+					if child.hasFlag(flagOperator2) && child.data == "*" &&
+						child.childs[0].hasFlag(flagNumber) &&
+						child.childs[1].hasFlag(flagVariable) {
+
+						found := false
+						for i, s := range varsList {
+							if s.name == child.childs[1].data {
+								varsList[i].ammount = append(varsList[i].ammount, child.childs[0].dataNumber)
+								found = true
+							}
+						}
+
+						if !found {
+							varsList = append(varsList, struct {
+								name    string
+								ammount []float64
+							}{name: child.childs[1].data, ammount: []float64{child.childs[0].dataNumber}})
+						}
+
+					} else if child.hasFlag(flagNumber) {
+						nums = append(nums, child.dataNumber)
+					}
+				}
+
+				if len(nums) > 1 {
+					handelError(newError(errorTypSolving, errorCriticalLevelNon, "More than one single Scalar found! "))
+				} else if len(nums) == 0 {
+					nums = append(nums, 0)
+				}
+
+				numsList = append(numsList, nums[0])
 			}
 
 			a := make([][]float64, dimentions)
 			for i := 0; i < dimentions; i++ {
-				a[i] = make([]float64, len(variableVectors))
+				a[i] = make([]float64, dimentions)
 			}
 			for i := 0; i < dimentions; i++ {
 				for j := 0; j < dimentions; j++ {
-					a[j][i] = variableVectors[i].childs[0].childs[j].dataNumber
+					a[j][i] = varsList[i].ammount[j]
 				}
 			}
 
-			var vectors []*node
-			gaussFindVectors(term.root, &vectors)
-			if len(vectors) != 1 {
-				handelError(newError(errorTypSolving, errorCriticalLevelNon, "Not exactly one b vector found."))
-				return nil
-			}
-			b := make([]float64, dimentions)
-			for i := 0; i < dimentions; i++ {
-				b[i] = vectors[0].childs[0].childs[i].dataNumber
-			}
-
-			x, err := gaussPartial(a, b)
+			x, err := gaussPartial(a, numsList)
 			handelError(err)
 
 			result := newVector()
-
 			result.childs = make([]*node, len(x))
-			for i, termVariable := range term.variables {
-				for j, variableVector := range variableVectors {
-					if termVariable.data == variableVector.childs[1].data {
-						result.childs[i] = newNode("", x[j]*-1, flagData, flagNumber)
-					}
-				}
+			for i, f := range x {
+				result.childs[i] = newNode("", f*-1, flagData, flagNumber)
 			}
 
 			return result
@@ -71,26 +97,16 @@ func termFunctionGauss() simpPattern {
 	}
 }
 
-func gaussFindVaribleVectors(node *node, vectors *[]*node) {
-	for _, child := range node.childs {
-		gaussFindVaribleVectors(child, vectors)
+func gaussFindBaseChilds(node *node, childs *[]*node) {
+	if !(node.hasFlag(flagOperator2) && node.data == "+") {
+		return
 	}
 
-	if node.hasFlag(flagOperator2) &&
-		node.data == "*" &&
-		node.childs[0].hasFlag(flagVector) &&
-		node.childs[1].hasFlag(flagVariable) {
-		*vectors = append(*vectors, node)
-	}
-}
-func gaussFindVectors(node *node, vectors *[]*node) {
 	for _, child := range node.childs {
-		gaussFindVectors(child, vectors)
-	}
-
-	if node.hasFlag(flagOperator2) &&
-		node.data == "+" &&
-		node.childs[0].hasFlag(flagVector) {
-		*vectors = append(*vectors, node)
+		if child.hasFlag(flagOperator2) && child.data == "+" {
+			gaussFindBaseChilds(child, childs)
+		} else {
+			*childs = append(*childs, child)
+		}
 	}
 }

@@ -68,8 +68,13 @@ func (n *node) setFlag(flag int, value bool) {
 
 	n.flagValues[flag] = value
 }
-func (n *node) hasFlag(flag int) bool {
-	return n.flagValues[flag]
+func (n *node) hasFlag(flags ...int) bool {
+	for _, flag := range flags {
+		if !n.flagValues[flag] {
+			return false
+		}
+	}
+	return true
 }
 func (n *node) hasAllFlagsOfNode(reference *node) bool {
 	for flag, flagValue := range reference.flagValues {

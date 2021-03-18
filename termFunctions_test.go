@@ -8,7 +8,9 @@ import (
 var testTermFunctions = []string{
 
 	"a t = t + 2",
-	"b t = gauss a t",
+	"b x y = x * ( 1 , 2 ) + ( 8 , 7 ) + ( 1 , 1 ) * y",
+	"c t = gauss a",
+	"d t = gauss b",
 }
 
 func TestTermFunction(t *testing.T) {

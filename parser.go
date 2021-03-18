@@ -45,9 +45,19 @@ func (p *parserNode) updateChilds() {
 		p.childs[i] = child.node
 	}
 }
+
+var customeChecks []func(p *parserNode) error
+
 func (p *parserNode) check() error {
 	for _, child := range p.parserChilds {
 		err := child.check()
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, check := range customeChecks {
+		err := check(p)
 		if err != nil {
 			return err
 		}

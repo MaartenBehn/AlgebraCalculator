@@ -42,9 +42,14 @@ func initTerm() {
 		func(text string) *parserNode { return tryParseVaraible(text) },
 	)
 
+	customeChecks = append(customeChecks,
+		termCheck,
+	)
+
 	simpPatterns = append(simpPatterns,
 		insertTerm(),
 	)
+
 }
 
 type term struct {
@@ -136,7 +141,6 @@ func insertTerm() simpPattern {
 		"Insterting term",
 	}
 }
-
 func termPleaceVars(node *node, term *term, termVar *node) {
 	for _, child := range node.childs {
 		termPleaceVars(child, term, termVar)
@@ -148,4 +152,23 @@ func termPleaceVars(node *node, term *term, termVar *node) {
 		}
 	}
 
+}
+
+func termCheck(p *parserNode) error {
+	if p.hasFlag(flagTerm) && len(p.parserChilds) == 0 {
+		var term *term
+		for _, t := range terms {
+			if t.name == p.data {
+				term = t
+				break
+			}
+		}
+
+		p.parserChilds = make([]*parserNode, len(term.variables))
+		for i, variable := range term.variables {
+			p.parserChilds[i] = newParserNode(rankTermEnd, 0, 0, variable.copyDeep())
+		}
+	}
+
+	return nil
 }
