@@ -1,7 +1,7 @@
-package AlgebraCalculator
+package V1
 
 import (
-	"AlgebraCalculator/log"
+	"AlgebraCalculator/V1/log"
 	"reflect"
 	"strings"
 )

@@ -1,6 +1,6 @@
-package AlgebraCalculator
+package V1
 
-import "AlgebraCalculator/log"
+import "AlgebraCalculator/V1/log"
 
 var initilized bool
 
@@ -9,6 +9,7 @@ func init() {
 		log.InitLog()
 		initTerm()
 
+		initParser()
 		initSimplifyer()
 		initTermFunctions()
 		initSolve()

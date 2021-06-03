@@ -1,12 +1,14 @@
-package AlgebraCalculator
+package V1
 
 import (
-	"AlgebraCalculator/log"
+	"AlgebraCalculator/V1/log"
 	"testing"
 )
 
 var testTerms = []string{
 
+	"a x = deriv ( 2 * x pow 2 + 1 * x )",
+	"a x = deriv ( 2 * x + 1 )",
 	"a x y = ( x + y ) * ( x + y )",
 	"a x y = ( x * y + x * y ) * ( x * y + x * y )",
 	"a t = t + t",
@@ -28,5 +30,4 @@ func TestReplace(t *testing.T) {
 		log.Print("\n\n")
 		log.PrintLog()
 	}
-
 }

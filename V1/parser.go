@@ -1,4 +1,4 @@
-package AlgebraCalculator
+package V1
 
 import (
 	"strconv"
@@ -18,6 +18,52 @@ const (
 	rankTermEnd      = 10
 )
 
+func initParser() {
+	parseTermFuncs = append(parseTermFuncs,
+		func(text string) *parserNode { return tryParseNumber(text) },
+
+		func(text string) *parserNode { return tryParseOperator2(text, "+", rankAddSub) },
+		func(text string) *parserNode { return tryParseOperator2(text, "-", rankAddSub) },
+		func(text string) *parserNode { return tryParseOperator2(text, "*", rankMul) },
+		func(text string) *parserNode { return tryParseOperator2(text, "/", rankMul) },
+		func(text string) *parserNode { return tryParseOperator2(text, "pow", rankPow) },
+
+		func(text string) *parserNode { return tryParseOperator2(text, ",", rankAppend) },
+		func(text string) *parserNode { return tryParseOperator2(text, ".", rankSubOperation) },
+
+		func(text string) *parserNode { return tryParseOperator1(text, "sin", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "sinh", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "asin", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "asinh", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "cos", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "cosh", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "acos", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "acosh", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "tan", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "tanh", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "atan", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "atanh", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator2(text, "atan2", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "abs", rankMathFunction) },
+
+		func(text string) *parserNode { return tryParseOperator2(text, "dot", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "len", rankMathFunction) },
+		func(text string) *parserNode { return tryParseOperator2(text, "dist", rankMathFunction) },
+
+		func(text string) *parserNode { return tryParseOperator1(text, "gauss", rankTermFunction) },
+
+		func(text string) *parserNode { return tryParseOperator1(text, "deriv", rankTermFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "inti", rankTermFunction) },
+
+		func(text string) *parserNode { return tryParseTerm(text) },
+		func(text string) *parserNode { return tryParseVaraible(text) },
+	)
+
+	customeChecks = append(customeChecks,
+		termCheck,
+	)
+}
+
 type parserNode struct {
 	*node
 	parserChilds []*parserNode
@@ -34,42 +80,6 @@ func newParserNode(rank int, maxChilds int, minChilds int, node *node) *parserNo
 		minChilds: maxChilds,
 		maxChilds: minChilds,
 	}
-}
-func (p *parserNode) setParserChilds(childs ...*parserNode) {
-	p.parserChilds = childs
-}
-func (p *parserNode) updateChilds() {
-	p.childs = make([]*node, len(p.parserChilds))
-	for i, child := range p.parserChilds {
-		child.updateChilds()
-		p.childs[i] = child.node
-	}
-}
-
-var customeChecks []func(p *parserNode) error
-
-func (p *parserNode) check() error {
-	for _, child := range p.parserChilds {
-		err := child.check()
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, check := range customeChecks {
-		err := check(p)
-		if err != nil {
-			return err
-		}
-	}
-
-	if len(p.parserChilds) < p.minChilds {
-		return newError(errorTypParsing, errorCriticalLevelPartial, "Node: \""+p.data+"\" has not enought children!")
-	}
-	if len(p.parserChilds) > p.maxChilds {
-		return newError(errorTypParsing, errorCriticalLevelPartial, "Node: \""+p.data+"\" has to many children!")
-	}
-	return nil
 }
 
 func tryParseOperator1(text string, name string, rank int) *parserNode {
@@ -134,7 +144,40 @@ func tryParseReplaceRulePart(text string) *parserNode {
 
 		}
 	}
+	return nil
+}
 
+func (p *parserNode) updateChilds() {
+	p.childs = make([]*node, len(p.parserChilds))
+	for i, child := range p.parserChilds {
+		child.updateChilds()
+		p.childs[i] = child.node
+	}
+}
+
+var customeChecks []func(p *parserNode) error
+
+func (p *parserNode) check() error {
+	for _, child := range p.parserChilds {
+		err := child.check()
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, check := range customeChecks {
+		err := check(p)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(p.parserChilds) < p.minChilds {
+		return newError(errorTypParsing, errorCriticalLevelPartial, "Node: \""+p.data+"\" has not enought children!")
+	}
+	if len(p.parserChilds) > p.maxChilds {
+		return newError(errorTypParsing, errorCriticalLevelPartial, "Node: \""+p.data+"\" has to many children!")
+	}
 	return nil
 }
 
@@ -193,6 +236,10 @@ func tryParse(part string, parseFuncs []func(text string) *parserNode) (node *pa
 		}
 	}
 	return nil, newError(errorTypParsing, errorCriticalLevelPartial, "Expression: \""+part+"\" could not be parsed.")
+}
+
+func (p *parserNode) setParserChilds(childs ...*parserNode) {
+	p.parserChilds = childs
 }
 
 // addParsedNode adds the node to the tree, the rank of the node is used to detemine where the node is placed.

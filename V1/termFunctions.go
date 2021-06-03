@@ -1,9 +1,23 @@
-package AlgebraCalculator
+package V1
 
 func initTermFunctions() {
 	simpPatterns = append(simpPatterns,
 		termFunctionGauss(),
 	)
+}
+
+func termFindBaseChilds(node *node, childs *[]*node) {
+	if !(node.hasFlag(flagOperator2) && node.data == "+") {
+		return
+	}
+
+	for _, child := range node.childs {
+		if child.hasFlag(flagOperator2) && child.data == "+" {
+			termFindBaseChilds(child, childs)
+		} else {
+			*childs = append(*childs, child)
+		}
+	}
 }
 
 func termFunctionGauss() simpPattern {
@@ -34,7 +48,7 @@ func termFunctionGauss() simpPattern {
 			for _, root := range roots {
 				// Finind childs of +ese
 				var childs []*node
-				gaussFindBaseChilds(root, &childs)
+				termFindBaseChilds(root, &childs)
 
 				var nums []float64
 
@@ -78,6 +92,7 @@ func termFunctionGauss() simpPattern {
 			}
 			for i := 0; i < dimentions; i++ {
 				for j := 0; j < dimentions; j++ {
+
 					a[j][i] = varsList[i].ammount[j]
 				}
 			}
@@ -97,16 +112,48 @@ func termFunctionGauss() simpPattern {
 	}
 }
 
-func gaussFindBaseChilds(node *node, childs *[]*node) {
-	if !(node.hasFlag(flagOperator2) && node.data == "+") {
-		return
-	}
+func termDerivative() simpPattern {
+	return simpPattern{
+		func(root *node) bool {
+			return root.hasFlag(flagOperator1) && root.data == "deriv"
+		},
+		func(root *node) *node {
 
-	for _, child := range node.childs {
-		if child.hasFlag(flagOperator2) && child.data == "+" {
-			gaussFindBaseChilds(child, childs)
-		} else {
-			*childs = append(*childs, child)
-		}
+			var childs []*node
+			termFindBaseChilds(root.childs[0], &childs)
+
+			for _, child := range childs {
+				if child.hasFlag(flagOperator2) && child.data == "*" && child.childs[0].hasFlag(flagNumber) {
+					if child.childs[1].hasFlag(flagOperator2) && child.childs[1].data == "pow" {
+
+						instertNode := newNode("*", 0, flagAction, flagOperator2)
+						instertNode.childs = []*node{
+							newNode("number", child.childs[1].childs[1].dataNumber, flagData, flagNumber),
+							newNode("number", child.childs[0].dataNumber, flagData, flagNumber),
+						}
+						child.childs[0] = instertNode
+
+						instertNode2 := newNode("+", 0, flagAction, flagOperator2)
+						instertNode2.childs = []*node{
+							child.childs[1].childs[1],
+							newNode("number", 1, flagData, flagNumber),
+						}
+						child.childs[1].childs[1] = instertNode2
+
+					} else {
+
+						instertNode := newNode("pow", 0, flagAction, flagOperator2)
+						instertNode.childs = []*node{
+							child.childs[1],
+							newNode("number", 2, flagData, flagNumber),
+						}
+						child.childs[1] = instertNode
+					}
+				}
+			}
+
+			return root
+		},
+		"Derivative",
 	}
 }

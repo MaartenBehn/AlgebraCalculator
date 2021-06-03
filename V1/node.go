@@ -1,11 +1,12 @@
-package AlgebraCalculator
+package V1
 
 import (
-	"AlgebraCalculator/log"
+	"AlgebraCalculator/V1/log"
 	"fmt"
 	"math"
 )
 
+// Flag indexes that are used as index in flagValues.
 const (
 	flagNone = 0
 	flagRoot = 1
@@ -93,12 +94,15 @@ func (n *node) equal(reference *node) bool {
 		return false
 	}
 
+	// Number are the same when the number is the same. Else it usually the string.
 	if n.hasFlag(flagNumber) {
 		return n.dataNumber == reference.dataNumber
 	} else {
 		return n.data == reference.data
 	}
 }
+
+// Recursive equal check.
 func (n *node) equalDeep(reference *node) bool {
 	if len(n.childs) != len(reference.childs) || !n.equal(reference) {
 		return false
@@ -111,6 +115,8 @@ func (n *node) equalDeep(reference *node) bool {
 	}
 	return true
 }
+
+// Recursive copy
 func (n *node) copyDeep() *node {
 	copy := newNode(n.data, n.dataNumber)
 	copy.flagValues = n.flagValues
@@ -120,9 +126,13 @@ func (n *node) copyDeep() *node {
 	}
 	return copy
 }
+
+// Both data types combined create a clear idenity
 func (n *node) getIdentity() string { // TODO improve for sorting
 	return n.data + fmt.Sprintf("%f", n.dataNumber)
 }
+
+// Combined identity of node and childs.
 func (n *node) getIdentityDeep() string {
 	identify := n.getIdentity()
 	for _, child := range n.childs {

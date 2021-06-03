@@ -1,6 +1,6 @@
-package AlgebraCalculator
+package V1
 
-import "AlgebraCalculator/log"
+import "AlgebraCalculator/V1/log"
 
 func initSimplifyer() {
 	simpPatterns = append(simpPatterns,

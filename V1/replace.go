@@ -1,4 +1,4 @@
-package AlgebraCalculator
+package V1
 
 import "strconv"
 
@@ -13,9 +13,19 @@ func initReplace() {
 		func(text string) *parserNode { return tryParseOperator2(text, "*", rankMul) },
 		func(text string) *parserNode { return tryParseOperator2(text, "/", rankMul) },
 		func(text string) *parserNode { return tryParseOperator2(text, "pow", rankPow) },
+		func(text string) *parserNode { return tryParseOperator1(text, "deriv", rankTermFunction) },
+		func(text string) *parserNode { return tryParseOperator1(text, "inti", rankTermFunction) },
 	)
 
 	ruleStrings := []string{
+
+		//Deriv
+		"deriv ( all_0 + all_1 ) = deriv all_0 + deriv all_1",
+		"deriv ( var_0 pow num_1 ) = num_1 * var_0 pow ( num_1 - 1 )",
+		"deriv ( num_0 * var_1 ) = num_0",
+		"deriv ( num_0 * var_1 pow num_2 ) = num_0 * num_2 * var_1 pow ( num_2 - 1 )",
+		"deriv num_0 = 0",
+		"deriv var_0 = 1",
 
 		// Fix wrong Brace order
 		"all_0i + ( all_1i + all_2i ) = all_0 + all_1 + all_2",
@@ -87,6 +97,7 @@ func initReplace() {
 		"all_0 + num_1 * all_2 + all_2 = all_0 + ( num_1 + 1 ) * all_2", // Edge
 		"all_0 + all_0 = 2 * all_0",
 		"all_0 + all_1 + all_1 = all_0 + 2 * all_1", // Edge
+
 	}
 
 	for _, ruleString := range ruleStrings {
