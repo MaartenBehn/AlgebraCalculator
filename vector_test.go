@@ -1,7 +1,6 @@
-package V1
+package AlgebraCalculator
 
 import (
-	"AlgebraCalculator/V1/log"
 	"testing"
 )
 
@@ -29,11 +28,11 @@ func TestVector(t *testing.T) {
 			continue
 		}
 		simplifyRoot(term.root)
-		log.PrintLog()
+		PrintLog()
 
-		log.Print("In: " + vectorTerm + "\nGot: ")
+		Print("In: " + vectorTerm + "\nGot: ")
 		term.print()
-		log.Print("\n\n")
-		log.PrintLog()
+		Print("\n\n")
+		PrintLog()
 	}
 }

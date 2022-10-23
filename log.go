@@ -1,4 +1,4 @@
-package log
+package AlgebraCalculator
 
 import (
 	"bytes"

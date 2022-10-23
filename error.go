@@ -1,7 +1,6 @@
-package V1
+package AlgebraCalculator
 
 import (
-	"AlgebraCalculator/V1/log"
 	"reflect"
 	"strings"
 )
@@ -50,10 +49,10 @@ func handelError(err error) bool {
 	if reflect.TypeOf(err) == reflect.TypeOf(&calculatorError{}) {
 		switch err.(*calculatorError).critical {
 		case errorCriticalLevelNon:
-			log.Print(err.Error())
+			Print(err.Error())
 			return false
 		case errorCriticalLevelPartial:
-			log.Print(err.Error())
+			Print(err.Error())
 			return true
 		case errorCriticalLevelFatal:
 			panic(err)

@@ -1,12 +1,10 @@
-package V1
-
-import "AlgebraCalculator/V1/log"
+package AlgebraCalculator
 
 var initilized bool
 
 func init() {
 	if !initilized {
-		log.InitLog()
+		InitLog()
 		initTerm()
 
 		initParser()
@@ -16,7 +14,7 @@ func init() {
 		initVector()
 		initSort()
 		initReplace()
-		log.GetLog()
+		GetLog()
 
 		initilized = true
 	}
@@ -44,25 +42,25 @@ func Calculate(termStrings ...string) Result {
 		}
 
 		term, err := parseTerm(termString)
-		result.Log = append(result.Log, log.GetLog())
+		result.Log = append(result.Log, GetLog())
 		if handelError(err) {
-			result.Log = append(result.Log, log.GetLog())
+			result.Log = append(result.Log, GetLog())
 			continue
 		}
 
 		simplifyRoot(term.root)
 		if r := recover(); r != nil {
 			handelError(newError(errorTypSolving, errorCriticalLevelPartial, "Some Error accured!"))
-			result.Log = append(result.Log, log.GetLog())
+			result.Log = append(result.Log, GetLog())
 			continue
 		}
-		result.Log = append(result.Log, log.GetLog())
+		result.Log = append(result.Log, GetLog())
 
 		term.root.print()
-		result.AnswerStrings[i] = log.GetLog()
+		result.AnswerStrings[i] = GetLog()
 
 		term.print()
-		result.TermStrings[i] = log.GetLog()
+		result.TermStrings[i] = GetLog()
 
 		terms = append(terms, term)
 	}

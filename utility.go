@@ -1,4 +1,4 @@
-package V1
+package AlgebraCalculator
 
 import (
 	"strings"

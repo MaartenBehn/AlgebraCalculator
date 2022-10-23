@@ -1,7 +1,6 @@
-package V1
+package AlgebraCalculator
 
 import (
-	"AlgebraCalculator/V1/log"
 	"testing"
 )
 
@@ -23,11 +22,11 @@ func TestReplace(t *testing.T) {
 			t.Error(err)
 		}
 		simplifyRoot(term.root)
-		log.PrintLog()
+		PrintLog()
 
-		log.Print("In: " + testTerm + "\nGot: ")
+		Print("In: " + testTerm + "\nGot: ")
 		term.print()
-		log.Print("\n\n")
-		log.PrintLog()
+		Print("\n\n")
+		PrintLog()
 	}
 }

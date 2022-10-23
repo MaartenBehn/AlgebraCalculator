@@ -1,6 +1,4 @@
-package V1
-
-import "AlgebraCalculator/V1/log"
+package AlgebraCalculator
 
 func initSimplifyer() {
 	simpPatterns = append(simpPatterns,
@@ -33,7 +31,7 @@ func simplifyRoot(root *node) {
 			match := pattern.trySimpPattern(root)
 			if match {
 				root.printTree(0)
-				log.Print("\n")
+				Print("\n")
 				found = true
 				break
 			}
@@ -42,7 +40,7 @@ func simplifyRoot(root *node) {
 }
 func (p *simpPattern) trySimpPattern(node *node) bool {
 	if p.pattern(node) {
-		log.Println("\nPattern: " + p.patternString)
+		Println("\nPattern: " + p.patternString)
 		newNode := p.apply(node)
 		*node = *newNode
 		return true

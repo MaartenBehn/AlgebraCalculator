@@ -1,7 +1,6 @@
-package V1
+package AlgebraCalculator
 
 import (
-	"AlgebraCalculator/V1/log"
 	"testing"
 )
 
@@ -22,10 +21,10 @@ func TestPrint(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		log.PrintLog()
+		PrintLog()
 		term.print()
 
-		log := log.GetLog()
+		log := GetLog()
 		if log != testPrint.out {
 			t.Error("Got \"" + log + "\" but wanted \"" + testPrint.out + "\"")
 		}

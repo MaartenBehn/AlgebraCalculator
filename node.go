@@ -1,7 +1,6 @@
-package V1
+package AlgebraCalculator
 
 import (
-	"AlgebraCalculator/V1/log"
 	"fmt"
 	"math"
 )
@@ -144,42 +143,42 @@ func (n *node) getIdentityDeep() string {
 func (n *node) print() {
 
 	if n.hasFlag(flagBracketRoot) {
-		log.Print("(")
+		Print("(")
 	}
 	if n.hasFlag(flagVector) {
 
-		log.Print("(")
+		Print("(")
 		for i, child := range n.childs {
 			if i != 0 {
-				log.Print(", ")
+				Print(", ")
 			}
 			child.print()
 		}
-		log.Print(")")
+		Print(")")
 
 	} else if n.hasFlag(flagOperator2) {
 		n.childs[0].print()
-		log.Printf(" %s ", n.data)
+		Printf(" %s ", n.data)
 		n.childs[1].print()
 	} else {
 		if n.hasFlag(flagNumber) {
 			if n.dataNumber == math.Trunc(n.dataNumber) {
-				log.Printf("%.0f", n.dataNumber)
+				Printf("%.0f", n.dataNumber)
 			} else {
-				log.Printf("%.4f", n.dataNumber)
+				Printf("%.4f", n.dataNumber)
 			}
 		} else {
-			log.Print(n.data)
+			Print(n.data)
 		}
 
 		for _, child := range n.childs {
-			log.Print(" ")
+			Print(" ")
 			child.print()
 		}
 	}
 
 	if n.hasFlag(flagBracketRoot) {
-		log.Print(")")
+		Print(")")
 	}
 }
 func (n *node) printTree(indentation int) {
@@ -187,27 +186,27 @@ func (n *node) printTree(indentation int) {
 	if n.hasFlag(flagOperator2) {
 		n.childs[0].printTree(indentation + 1)
 
-		log.Print("\n")
+		Print("\n")
 		printIndentation(indentation)
-		log.Printf(" %s ", n.data)
+		Printf(" %s ", n.data)
 
 		n.childs[1].printTree(indentation + 1)
 	} else {
 
-		log.Print("\n")
+		Print("\n")
 		printIndentation(indentation)
 		if n.hasFlag(flagNumber) {
 			if n.dataNumber == math.Trunc(n.dataNumber) {
-				log.Printf("%.0f", n.dataNumber)
+				Printf("%.0f", n.dataNumber)
 			} else {
-				log.Printf("%.4f", n.dataNumber)
+				Printf("%.4f", n.dataNumber)
 			}
 		} else {
-			log.Print(n.data)
+			Print(n.data)
 		}
 
 		for _, child := range n.childs {
-			log.Print(" ")
+			Print(" ")
 			child.printTree(indentation + 1)
 		}
 	}
@@ -215,11 +214,11 @@ func (n *node) printTree(indentation int) {
 func printIndentation(indentation int) {
 	for i := 0; i < indentation; i++ {
 		if i == indentation-1 {
-			log.Print("|> ")
+			Print("|> ")
 		} else if i == 0 {
-			log.Print("|  ")
+			Print("|  ")
 		} else {
-			log.Print("   ")
+			Print("   ")
 		}
 
 	}

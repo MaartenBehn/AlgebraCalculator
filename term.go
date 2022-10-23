@@ -1,6 +1,4 @@
-package V1
-
-import "AlgebraCalculator/V1/log"
+package AlgebraCalculator
 
 var parseTermFuncs []func(text string) *parserNode
 
@@ -20,19 +18,19 @@ func newTerm(name string) *term {
 	return &term{name: name}
 }
 func (t *term) print() {
-	log.Print(t.name)
+	Print(t.name)
 	if len(t.variables) > 0 {
 
-		log.Print("<")
+		Print("<")
 		for i, variable := range t.variables {
 			variable.print()
 			if i < len(t.variables)-1 {
-				log.Print(" ")
+				Print(" ")
 			}
 		}
-		log.Print(">")
+		Print(">")
 	}
-	log.Print(" = ")
+	Print(" = ")
 
 	t.root.print()
 }
@@ -67,9 +65,9 @@ func parseTerm(text string) (*term, error) {
 		return nil, newError(errorTypParsing, errorCriticalLevelPartial, "term could not be parsed!")
 	}
 
-	log.Print("Parse: \n")
+	Print("Parse: \n")
 	root.print()
-	log.Print("\n")
+	Print("\n")
 
 	t := newTerm(parts1[0])
 	t.variables = variables
